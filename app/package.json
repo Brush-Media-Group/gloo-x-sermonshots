@@ -41,5 +41,9 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.6"
 	}
 }
