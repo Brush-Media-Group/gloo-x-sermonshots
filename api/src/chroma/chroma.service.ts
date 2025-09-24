@@ -168,22 +168,51 @@ export class ChromaService implements OnModuleInit {
 
   async searchVector(searchTerm: string) {
     console.log(`Searching for: ${searchTerm}`);
-    const chaptersQuery = await this.chapters.query({
-      queryTexts: [searchTerm],
-    });
+    
+    // Search both transcripts and chapters
+    const [transcriptsQuery, chaptersQuery] = await Promise.all([
+      this.transcripts.query({
+        queryTexts: [searchTerm],
+        nResults: 10,
+      }),
+      this.chapters.query({
+        queryTexts: [searchTerm],
+        nResults: 10,
+      })
+    ]);
 
     const results = await Promise.all(
-      chaptersQuery.documents[0].map(async (doc, i) => { 
-        const metadata = chaptersQuery?.metadatas?.[0]?.[i] as unknown as ChapterMetadata;
+      transcriptsQuery.documents[0].map(async (doc, i) => { 
+        const metadata = transcriptsQuery?.metadatas?.[0]?.[i] as unknown as TranscriptMetadata;
         const transcription_id = metadata?.transcription_id;
+        
+        // Find matching chapters for this transcript
+        const matchingChapters: any[] = [];
+        
+        // Look through chapter search results for this transcript
+        chaptersQuery.documents[0].forEach((chapterDoc, chapterIndex) => {
+          const chapterMetadata = chaptersQuery?.metadatas?.[0]?.[chapterIndex] as unknown as ChapterMetadata;
+          
+          if (chapterMetadata?.transcription_id === transcription_id) {
+            matchingChapters.push({
+              content: chapterDoc,
+              start: chapterMetadata.start,
+              end: chapterMetadata.end,
+              score: chaptersQuery.distances?.[0]?.[chapterIndex] || 0
+            });
+          }
+        });
+        
+        // Sort chapters by relevance score (lower distance = more relevant)
+        matchingChapters.sort((a, b) => a.score - b.score);
+        
         return {
           doc,
           transcription_id,
-          start: metadata?.start,
-          end: metadata?.end,
+          matchingChapters: matchingChapters.slice(0, 3), // Top 3 most relevant chapters
         };
       })
-    );
+    );    
 
     return results;
   }

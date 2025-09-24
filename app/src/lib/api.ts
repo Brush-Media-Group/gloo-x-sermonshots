@@ -15,6 +15,9 @@ export interface Chapter {
   summary: string;
   start: number;
   end: number;
+  transcript?: string;
+  isRelevant?: boolean;
+  relevanceScore?: number | null;
 }
 
 export interface RelatedVideo {

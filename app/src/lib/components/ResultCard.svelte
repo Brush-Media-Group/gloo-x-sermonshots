@@ -1,23 +1,35 @@
 <script lang="ts">
+  import { onMount, onDestroy } from 'svelte';
   import ChapterList from './ChapterList.svelte';
+  import { pauseAllVideosExcept, registerVideo, unregisterVideo } from '$lib/stores/videoStore';
 
   export let result: {
     transcription_id: string;
     videoUrl: string;
     text: string;
-    chapters: { title: string; summary: string; start: number; end: number }[];
+    chapters: { title: string; summary: string; start: number; end: number; transcript?: string }[];
   };
 
   let showFullTranscript = false;
   let videoEl: HTMLVideoElement;
-  let activeChapter: { title: string; start: number; end: number } | null = null;
+  let activeChapter: { title: string; start: number; end: number; transcript?: string } | null = null;
   let videoDuration = 0;
+  let selectedChapterForTranscript: { title: string; transcript?: string } | null = null;
 
   function handleLoadedMetadata() {
     if (videoEl) {
       videoDuration = videoEl.duration;
+      // Register this video element for global management
+      registerVideo(videoEl);
     }
   }
+
+  // Cleanup when component is destroyed
+  onDestroy(() => {
+    if (videoEl) {
+      unregisterVideo(videoEl);
+    }
+  });
 
   function handleTimeUpdate() {
     if (!videoEl) return;
@@ -35,12 +47,34 @@
     }
   }
 
-  function seekTo(chapter: { title: string; start: number; end: number }) {
+  function seekTo(chapter: { title: string; start: number; end: number; transcript?: string }) {
     if (videoEl) {
+      // Pause all other videos on the page first
+      pauseAllVideosExcept(videoEl);
+      
+      // Pause this video first if it's currently playing
+      if (!videoEl.paused) {
+        videoEl.pause();
+      }
+      
+      // Seek to the chapter start time
       videoEl.currentTime = chapter.start / 1000; // convert milliseconds to seconds
+      
+      // Play the video at the new position
       videoEl.play();
       activeChapter = chapter;
     }
+    // Set the selected chapter for transcript display
+    selectedChapterForTranscript = {
+      title: chapter.title,
+      transcript: chapter.transcript
+    };
+  }
+
+  // Function to reset to full transcript
+  function showFullVideoTranscript() {
+    selectedChapterForTranscript = null;
+    showFullTranscript = false;
   }
 </script>
 
@@ -83,20 +117,41 @@
 
       <!-- Transcript -->
       <div>
-        <h3 class="font-semibold text-gray-800">Transcript</h3>
-        <p class="text-sm text-gray-600 mt-2">
-          {#if showFullTranscript}
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="font-semibold text-gray-800">
+            {selectedChapterForTranscript ? `Chapter: ${selectedChapterForTranscript.title}` : 'Transcript'}
+          </h3>
+          {#if selectedChapterForTranscript}
+            <button
+              class="text-xs text-blue-600 hover:underline"
+              on:click={showFullVideoTranscript}
+            >
+              ← Back to Full Transcript
+            </button>
+          {/if}
+        </div>
+        
+        <p class="text-sm text-gray-600 mt-2 text-justify">
+          {#if selectedChapterForTranscript}
+            <!-- Show chapter transcript -->
+            {selectedChapterForTranscript.transcript || 'No transcript available for this chapter.'}
+          {:else if showFullTranscript}
+            <!-- Show full transcript -->
             {result.text}
           {:else}
+            <!-- Show truncated full transcript -->
             {result.text.slice(0, 300)}...
           {/if}
         </p>
-        <button
-          class="mt-2 text-blue-600 hover:underline text-sm"
-          on:click={() => (showFullTranscript = !showFullTranscript)}
-        >
-          {showFullTranscript ? 'Show Less' : 'View Full Transcript'}
-        </button>
+        
+        {#if !selectedChapterForTranscript}
+          <button
+            class="mt-2 text-blue-600 hover:underline text-sm"
+            on:click={() => (showFullTranscript = !showFullTranscript)}
+          >
+            {showFullTranscript ? 'Show Less' : 'View Full Transcript'}
+          </button>
+        {/if}
       </div>
     </div>
 

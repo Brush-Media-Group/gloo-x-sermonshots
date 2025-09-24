@@ -105,26 +105,60 @@ export class VideoService {
     this.logger.log(`Searching for: ${searchTerm}`);
     try {
       const chromaResults = await this.chromaService.searchVector(searchTerm);
-      this.logger.log(`Chroma results: ${chromaResults.length}`);
       // Transform the results to match the frontend interface
       const results = await Promise.all(
         chromaResults.map(async (result: any) => {
           const video = await this.getVideoByTranscriptId(result.transcription_id);
-          const chapters = (JSON.parse(video?.raw_transcript || '{}'))?.chapters || [];
+          const fullTranscript = JSON.parse(video?.raw_transcript || '{}');
+          const chapters = fullTranscript?.chapters || [];
+          const words = fullTranscript?.words || [];
+          
+          // Helper function to extract transcript text for a chapter
+          const extractChapterTranscript = (startTime: number, endTime: number): string => {
+            if (!words || words.length === 0) return '';
+            
+            const chapterWords = words.filter((word: any) => 
+              word.start >= startTime && word.end <= endTime
+            );
+            
+            return chapterWords.map((word: any) => word.text).join(' ');
+          };
+          
+          // Create a map of matching chapters by their start/end times for easy lookup
+          const matchingChapterMap = new Map();
+          if (result.matchingChapters) {
+            result.matchingChapters.forEach((matchingChapter: any) => {
+              const key = `${matchingChapter.start}-${matchingChapter.end}`;
+              matchingChapterMap.set(key, {
+                score: matchingChapter.score,
+                content: matchingChapter.content
+              });
+            });
+          }
+          
           return {
             transcription_id: result.transcription_id,
             videoUrl: video?.video_url || '',
             text: result.doc || '',
             title: video?.title || 'Untitled Video',
-            chapters: chapters.map(chapter => (
-              {
-                title: chapter.headline,
+            chapters: chapters.map((chapter, index) => {
+              const key = `${chapter.start}-${chapter.end}`;
+              const matchingInfo = matchingChapterMap.get(key);
+              const chapterTranscript = extractChapterTranscript(chapter.start, chapter.end);
+              
+              return {
+                title: chapter.headline || `Chapter ${index + 1}`,
                 summary: chapter.summary,
                 start: chapter.start,
                 end: chapter.end,
-              }
-             )),
-            thumbnail: video?.video_thumbnail_url || '', // Add thumbnail logic if available
+                transcript: chapterTranscript, // Add full transcript text for this chapter
+                isRelevant: !!matchingInfo, // Mark if this chapter is relevant to search
+                relevanceScore: matchingInfo?.score || null,
+              };
+            }),
+            thumbnail: video?.video_thumbnail_url || '',
+            // Add summary of most relevant chapters
+            relevantChapters: result.matchingChapters || [],
           };
         })
       );
