@@ -70,7 +70,8 @@ export async function searchVideos(query: string): Promise<SearchResponse> {
     console.error('Search API error:', error);
     
     // Return mock data for development
-    return getMockSearchResults(query);
+    //return getMockSearchResults(query);
+    return { results: [], relatedContent: [], query, totalResults: 0 };
   }
 }
 

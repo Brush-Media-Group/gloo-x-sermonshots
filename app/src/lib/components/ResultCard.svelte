@@ -21,22 +21,23 @@
 
   function handleTimeUpdate() {
     if (!videoEl) return;
-    const current = videoEl.currentTime;
+    const current = videoEl.currentTime; // in seconds
+    const currentMs = current * 1000; // convert to milliseconds for comparison
 
     const chapter = result.chapters.find(
-      (c) => current >= c.start && current < c.end
+      (c) => currentMs >= c.start && currentMs < c.end
     );
 
     activeChapter = chapter ?? null;
 
-    if (activeChapter && current >= activeChapter.end) {
+    if (activeChapter && currentMs >= activeChapter.end) {
       videoEl.pause();
     }
   }
 
-  function seekTo(chapter) {
+  function seekTo(chapter: { title: string; start: number; end: number }) {
     if (videoEl) {
-      videoEl.currentTime = chapter.start;
+      videoEl.currentTime = chapter.start / 1000; // convert milliseconds to seconds
       videoEl.play();
       activeChapter = chapter;
     }
@@ -71,8 +72,8 @@
                     : 'bg-blue-400/70'}
                 `}
                 style="
-                  left: {(chapter.start / videoDuration) * 100}%;
-                  width: {((chapter.end - chapter.start) / videoDuration) * 100}%;
+                  left: {((chapter.start / 1000) / videoDuration) * 100}%;
+                  width: {(((chapter.end - chapter.start) / 1000) / videoDuration) * 100}%;
                 "
               ></div>
             {/each}

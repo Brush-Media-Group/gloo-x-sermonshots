@@ -18,5 +18,6 @@ import { ChromaModule } from 'src/chroma/chroma.module';
   ],
   controllers: [VideoController],
   providers: [VideoService],
+  exports: [VideoService],
 })
 export class VideoModule {}

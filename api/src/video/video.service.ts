@@ -24,6 +24,7 @@ export class VideoService {
   ) {}
 
   async transcribeVideos(params: VideoTranscribeDto): Promise<number[]> {
+    this.logger.log(`Transcribing videos for page ${params.page} and limit ${params.limit}`);
     const baseUrl = this.configService.get<string>('SERMONSHOTS_API_URL');
 
     let videoList: VideoListResponse;
@@ -94,5 +95,49 @@ export class VideoService {
     }
 
     return results;
+  }
+
+  async getVideoByTranscriptId(transcriptId: string) {
+    return this.videoRepository.findOne({ where: { transcript_id: transcriptId }});
+  }
+
+  async searchVector(searchTerm: string) {
+    this.logger.log(`Searching for: ${searchTerm}`);
+    try {
+      const chromaResults = await this.chromaService.searchVector(searchTerm);
+      this.logger.log(`Chroma results: ${chromaResults.length}`);
+      // Transform the results to match the frontend interface
+      const results = await Promise.all(
+        chromaResults.map(async (result: any) => {
+          const video = await this.getVideoByTranscriptId(result.transcription_id);
+          const chapters = (JSON.parse(video?.raw_transcript || '{}'))?.chapters || [];
+          return {
+            transcription_id: result.transcription_id,
+            videoUrl: video?.video_url || '',
+            text: result.doc || '',
+            title: video?.title || 'Untitled Video',
+            chapters: chapters.map(chapter => (
+              {
+                title: chapter.headline,
+                summary: chapter.summary,
+                start: chapter.start,
+                end: chapter.end,
+              }
+             )),
+            thumbnail: video?.video_thumbnail_url || '', // Add thumbnail logic if available
+          };
+        })
+      );
+
+      return {
+        query: searchTerm,
+        totalResults: results.length,
+        results,
+        relatedContent: [], // Can be enhanced later
+      };
+    } catch (error) {
+      this.logger.error(`Error searching for vector: ${error}`);
+      return { error: 'Internal server error' };
+    }
   }
 }

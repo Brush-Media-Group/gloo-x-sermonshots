@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "db:migrate": "typeorm -d datasource.ts migration:run",
-    "db:migrate:revert": "typeorm -d datasource.ts migration:revert"
+    "db:migrate": "npm run build && npx typeorm -d dist/datasource.js migration:run",
+    "db:migrate:revert": "npm run build && npx typeorm -d dist/datasource.js migration:revert"
   },
   "dependencies": {
     "@chroma-core/default-embed": "^0.1.8",
