@@ -41,3 +41,9 @@ export interface MediaFile {
   type: string;
   fileLocation: string;
 }
+
+export class VideoTranscribeDto {
+  accessToken: string;
+  page: number;
+  limit: number;
+}

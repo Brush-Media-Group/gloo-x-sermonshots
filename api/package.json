@@ -22,13 +22,16 @@
     "db:migrate:revert": "typeorm -d datasource.ts migration:revert"
   },
   "dependencies": {
+    "@chroma-core/default-embed": "^0.1.8",
     "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/typeorm": "^11.0.0",
+    "assemblyai": "^4.16.1",
     "axios": "^1.12.2",
+    "chromadb": "^3.0.15",
     "dotenv": "^17.2.2",
     "pg": "^8.16.3",
     "postgres": "^3.4.7",

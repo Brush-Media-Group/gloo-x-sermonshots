@@ -5,9 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Video } from './video.entity';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { AssemblyaiModule } from 'src/assemblyai/assemblyai.module';
+import { ChromaModule } from 'src/chroma/chroma.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Video]), ConfigModule, HttpModule],
+  imports: [
+    TypeOrmModule.forFeature([Video]),
+    ConfigModule,
+    HttpModule,
+    AssemblyaiModule,
+    ChromaModule,
+  ],
   controllers: [VideoController],
   providers: [VideoService],
 })

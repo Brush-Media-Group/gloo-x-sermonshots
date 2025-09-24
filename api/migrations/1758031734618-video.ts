@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 export class Video1758031734618 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`CREATE TABLE "video" (
-            "id" uuid NOT NULL,
+            "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
             "transcript_id" text NOT NULL,
             "title" character varying NOT NULL,
             "raw_transcript" text NOT NULL,

@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { VideoModule } from './video/video.module';
+import { AssemblyaiModule } from './assemblyai/assemblyai.module';
+import { ChromaModule } from './chroma/chroma.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { VideoModule } from './video/video.module';
       isGlobal: true,
     }),
     VideoModule,
+    AssemblyaiModule,
+    ChromaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

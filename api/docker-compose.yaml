@@ -13,5 +13,19 @@ services:
     ports:
       - 5434:5432
 
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    restart: unless-stopped
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./data:/chroma/chroma
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_HTTP_PORT=8000
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - CHROMA_TELEMETRY_ENABLED=FALSE
+
 volumes:
   pgdata:
