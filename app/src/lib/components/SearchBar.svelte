@@ -3,14 +3,17 @@
   export let onSearch: (query: string) => void = () => {};
   export let placeholder = 'Search sermons, topics, or keywords...';
   export let isLoading = false;
+  export let debounceMs = 500; // Configurable debounce delay
+  export let minSearchLength = 2; // Minimum characters before searching
   
-  let term = value;
+  let term = value || '';
   let inputRef: HTMLInputElement;
+  let debounceTimer: NodeJS.Timeout | null = null;
 
   function handleSubmit(e: Event) {
     e.preventDefault();
     if (term.trim() && !isLoading) {
-      onSearch(term.trim());
+      performSearch();
     }
   }
 
@@ -20,14 +23,34 @@
     }
   }
 
-  function clearSearch() {
-    term = '';
-    inputRef?.focus();
+  function performSearch() {
+    if (term.trim().length >= minSearchLength) {
+      onSearch(term.trim());
+    }
   }
 
-  // Update internal term when external value changes
-  $: if (value !== term) {
-    term = value;
+
+  // Auto-search with debounce when term changes
+  let lastSearchTerm = '';
+  $: if (term !== lastSearchTerm) {
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    
+    // Only search if term meets minimum length requirement and is different from last search
+    if (term && term.trim().length >= minSearchLength && term.trim() !== lastSearchTerm.trim()) {
+      debounceTimer = setTimeout(() => {
+        if (!isLoading && term.trim() !== lastSearchTerm.trim()) {
+          lastSearchTerm = term.trim();
+          performSearch();
+        }
+      }, debounceMs);
+    } else if (!term || term.trim().length === 0) {
+      // Reset lastSearchTerm when input is empty
+      lastSearchTerm = '';
+    }
   }
 </script>
 
@@ -52,20 +75,6 @@
       autocomplete="off"
       spellcheck="false"
     />
-
-    <!-- Clear Button -->
-    {#if term}
-      <button
-        type="button"
-        on:click={clearSearch}
-        class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-        aria-label="Clear search"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    {/if}
 
     <!-- Search Button -->
     <button

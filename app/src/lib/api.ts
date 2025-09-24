@@ -1,3 +1,5 @@
+import { PUBLIC_API_BASE_URL } from '$env/static/public';
+
 // API configuration and types
 export interface VideoResult {
   transcription_id: string;
@@ -30,15 +32,33 @@ export interface SearchResponse {
   totalResults: number;
 }
 
-// Mock API base URL - replace with your actual API endpoint
-const API_BASE_URL = 'http://localhost:3001/api';
+// API base URL from environment variable with fallback
+const API_BASE_URL = PUBLIC_API_BASE_URL || 'http://localhost:3001';
+
+/**
+ * Test API connection
+ */
+export async function testConnection(): Promise<{ status: string; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/videos/health`);
+    
+    if (!response.ok) {
+      throw new Error(`Health check failed: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('API connection test failed:', error);
+    throw error;
+  }
+}
 
 /**
  * Search for videos based on a query
  */
 export async function searchVideos(query: string): Promise<SearchResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/search?q=${encodeURIComponent(query)}`);
+    const response = await fetch(`${API_BASE_URL}/videos/search?query=${encodeURIComponent(query)}`);
     
     if (!response.ok) {
       throw new Error(`Search failed: ${response.statusText}`);
