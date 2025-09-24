@@ -70,14 +70,20 @@ export class VideoService {
           .createQueryBuilder('video')
           .insert()
           .values({
+            user_id: video.owner,
             transcript_id: transcript.id,
             title: video.name,
             raw_transcript: JSON.stringify(transcript),
             video_url: video.file.publicUrl,
+            video_thumbnail_url: video.preview.publicUrl,
             is_public: true,
           })
           .execute(),
-        this.chromaService.addTranscript(transcript.id, transcript.text || ''),
+        this.chromaService.addTranscript(
+          transcript.id,
+          transcript.text || '',
+          video.owner,
+        ),
         this.chromaService.addChapters(
           transcript.id,
           transcript.chapters ?? [],

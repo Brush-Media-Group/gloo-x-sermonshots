@@ -4,10 +4,12 @@ export class Video1758031734618 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`CREATE TABLE "video" (
             "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+            "user_id" integer NOT NULL,
             "transcript_id" text NOT NULL,
             "title" character varying NOT NULL,
             "raw_transcript" text NOT NULL,
             "video_url" text NOT NULL,
+            "video_thumbnail_url" text NOT NULL,
             "is_public" boolean NOT NULL DEFAULT false,
             "created_at" TIMESTAMP NOT NULL DEFAULT now(),
             "updated_at" TIMESTAMP NOT NULL DEFAULT now(),

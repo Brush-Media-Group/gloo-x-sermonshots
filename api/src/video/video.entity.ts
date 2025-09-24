@@ -12,6 +12,9 @@ export class Video {
   id: string;
 
   @Column()
+  user_id: string;
+
+  @Column()
   transcript_id: string;
 
   @Column()
@@ -22,6 +25,9 @@ export class Video {
 
   @Column()
   video_url: string;
+
+  @Column()
+  video_thumbnail_url: string;
 
   @Column({ default: false })
   is_public: boolean;
