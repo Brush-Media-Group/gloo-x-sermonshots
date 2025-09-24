@@ -2,12 +2,14 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ChromaClient, Collection } from 'chromadb';
 import { ConfigService } from '@nestjs/config';
 import type { Chapter } from 'assemblyai';
+import { OpenAIEmbeddingFunction } from "@chroma-core/openai";
 
 @Injectable()
 export class ChromaService implements OnModuleInit {
   private client: ChromaClient;
   private transcripts!: Collection;
   private chapters!: Collection;
+  private embedding: OpenAIEmbeddingFunction;
 
   constructor(private configService: ConfigService) {}
 
@@ -16,13 +18,21 @@ export class ChromaService implements OnModuleInit {
       host: this.configService.get<string>('CHROMADB_URL'),
       port: this.configService.get<number>('CHROMADB_PORT'),
     });
-
+    
+    this.embedding = new OpenAIEmbeddingFunction({
+      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      modelName: "text-embedding-3-small",
+    });
+      
     // Ensure collections exist
     this.transcripts = await this.client.getOrCreateCollection({
       name: 'transcripts',
+      embeddingFunction: this.embedding,
     });
+    
     this.chapters = await this.client.getOrCreateCollection({
       name: 'chapters',
+      embeddingFunction: this.embedding,
     });
   }
 
