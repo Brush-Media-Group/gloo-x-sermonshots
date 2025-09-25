@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="http://localhost:3001/videos/transcribe"
+API_URL="http://localhost:3000/videos/transcribe"
 ACCESS_TOKEN="$1"
 PAGE="$2"
 LIMIT="$3"
