@@ -55,7 +55,7 @@
 </script>
 
 <form on:submit={handleSubmit} class="w-full max-w-3xl mx-auto">
-  <div class="relative flex items-center bg-white rounded-xl shadow-lg border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all duration-200">
+  <div class="relative flex items-center bg-white rounded-xl shadow-lg border border-gray-200 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200 transition-all duration-200">
     <!-- Search Icon -->
     <div class="pl-4 pr-2">
       <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +80,7 @@
     <button
       type="submit"
       disabled={!term.trim() || isLoading}
-      class="m-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+      class="m-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
     >
       {#if isLoading}
         <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">

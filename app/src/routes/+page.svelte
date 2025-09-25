@@ -3,6 +3,7 @@
   import SearchBar from '$lib/components/SearchBar.svelte';
   import ResultCard from '$lib/components/ResultCard.svelte';
   import RelatedVideoCard from '$lib/components/RelatedVideoCard.svelte';
+  import Modal from '$lib/components/Modal.svelte';
   import { searchVideos, type SearchResponse, type VideoResult } from '$lib/api';
 
   let searchQuery = '';
@@ -76,12 +77,12 @@
   <meta name="description" content="Search through sermon videos and find specific content with chapters and transcripts" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50 to-secondary-50">
   <!-- Header with Search -->
   <header class="bg-white/80 backdrop-blur-sm shadow-sm border-b border-white/20 sticky top-0 z-10">
     <div class="max-w-6xl mx-auto px-4 py-6">
       <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
           Sermon Video Search
         </h1>
         <p class="text-gray-600 text-sm">
@@ -102,8 +103,8 @@
       <!-- Loading State -->
       <div class="flex flex-col justify-center items-center py-16 animate-fadeInUp">
         <div class="relative">
-          <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
-          <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent absolute top-0 left-0"></div>
+          <div class="animate-spin rounded-full h-16 w-16 border-4 border-primary-200"></div>
+          <div class="animate-spin rounded-full h-16 w-16 border-4 border-primary-600 border-t-transparent absolute top-0 left-0"></div>
         </div>
         <div class="mt-6 text-center">
           <h3 class="text-lg font-medium text-gray-900 mb-2">Searching sermons...</h3>
@@ -123,9 +124,9 @@
           <p class="text-gray-500 mb-4">
             We couldn't find any sermons matching "{searchQuery}"
           </p>
-          <div class="bg-blue-50 rounded-lg p-4 text-left">
-            <h4 class="font-medium text-blue-900 mb-2">Try searching for:</h4>
-            <ul class="text-sm text-blue-700 space-y-1">
+          <div class="bg-primary-50 rounded-lg p-4 text-left">
+            <h4 class="font-medium text-primary-900 mb-2">Try searching for:</h4>
+            <ul class="text-sm text-primary-700 space-y-1">
               <li>• Bible book names (e.g., "Matthew", "Psalms")</li>
               <li>• Topics (e.g., "faith", "love", "forgiveness")</li>
               <li>• Keywords from sermon titles</li>
@@ -139,7 +140,7 @@
         <!-- Results Header -->
         <div class="flex items-center justify-between bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40">
           <h2 class="text-xl font-semibold text-gray-800">
-            Results for "<span class="text-blue-600">{searchQuery}</span>"
+            Results for "<span class="text-primary-600">{searchQuery}</span>"
           </h2>
           <div class="flex items-center gap-2">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -185,12 +186,12 @@
         <div class="max-w-4xl mx-auto">
           <!-- Hero Section -->
           <div class="mb-16">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-6 shadow-lg">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl mb-6 shadow-lg">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-6">
+            <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-primary-800 to-secondary-800 bg-clip-text text-transparent mb-6">
               Discover Sermon Content
             </h2>
             <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
@@ -203,7 +204,7 @@
               <span class="text-sm text-gray-500 mr-2">Popular searches:</span>
               {#each ['Faith', 'Hope', 'Love', 'Forgiveness', 'Prayer'] as suggestion}
                 <button 
-                  class="px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-gray-700 hover:bg-white/80 hover:border-blue-300 transition-all duration-200 hover:scale-105"
+                  class="px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-gray-700 hover:bg-white/80 hover:border-primary-300 transition-all duration-200 hover:scale-105"
                   on:click={() => handleSearch(suggestion)}
                 >
                   {suggestion}
@@ -215,7 +216,7 @@
           <!-- Features Grid -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
             <div class="group bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-white/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -252,7 +253,7 @@
           </div>
 
           <!-- Call to Action -->
-          <div class="mt-16 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
+          <div class="mt-16 p-8 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl border border-primary-100">
             <h3 class="text-xl font-bold text-gray-900 mb-3">Ready to explore?</h3>
             <p class="text-gray-600 mb-4">
               Start by searching for a topic, Bible verse, or keyword in the search bar above.
@@ -266,3 +267,6 @@
     {/if}
   </main>
 </div>
+
+<!-- Modal Component -->
+<Modal />

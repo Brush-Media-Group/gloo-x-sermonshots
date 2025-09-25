@@ -78,19 +78,20 @@
       <div
         class={`p-3 rounded-lg border cursor-pointer transition relative
           ${activeChapter === chapter.title
-            ? 'bg-blue-50 border-blue-400 shadow-sm'
+            ? 'bg-primary-50 border-primary-400 shadow-sm'
             : chapter.isRelevant
-            ? 'bg-yellow-50 border-yellow-300 hover:bg-yellow-100 shadow-sm'
+            ? 'bg-secondary-50 border-secondary-300 hover:bg-secondary-100 shadow-sm'
             : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}
         `}
         data-chapter-index={index}
         on:click={() => handleClick(chapter)}
+        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && handleClick(chapter)}
         role="button"
         tabindex="0"
       >
         {#if chapter.isRelevant}
           <div class="absolute top-2 right-2 flex gap-2">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
               🎯 Relevance Score: {chapter.relevanceScore}/5
             </span>
           </div>

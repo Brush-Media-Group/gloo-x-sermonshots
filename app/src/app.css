@@ -1,10 +1,31 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Custom colors for Tailwind v4 */
+@theme {
+  --color-primary-50: #fef2f4;
+  --color-primary-100: #fde6ea;
+  --color-primary-200: #fbd0da;
+  --color-primary-300: #f7aabf;
+  --color-primary-400: #f17ba0;
+  --color-primary-500: #EF446F;
+  --color-primary-600: #e63462;
+  --color-primary-700: #c1234f;
+  --color-primary-800: #a11e47;
+  --color-primary-900: #881c42;
+  --color-primary-950: #4c0b21;
+  
+  --color-secondary-50: #fff8f5;
+  --color-secondary-100: #ffefe8;
+  --color-secondary-200: #ffdcc6;
+  --color-secondary-300: #ffc199;
+  --color-secondary-400: #ff9b66;
+  --color-secondary-500: #FF8755;
+  --color-secondary-600: #f06d2f;
+  --color-secondary-700: #e15625;
+  --color-secondary-800: #b84520;
+  --color-secondary-900: #943a20;
+  --color-secondary-950: #501b0e;
+}
 
 /* Custom scrollbar */
 @layer utilities {

@@ -2,13 +2,17 @@
   import { onMount, onDestroy } from 'svelte';
   import ChapterList from './ChapterList.svelte';
   import { pauseAllVideosExcept, registerVideo, unregisterVideo } from '$lib/stores/videoStore';
+  import { openModal } from '$lib/stores/modalStore';
 
   export let result: {
     transcription_id: string;
     videoUrl: string;
     text: string;
+    title?: string;
     chapters: { title: string; summary: string; start: number; end: number; transcript?: string }[];
+    thumbnail?: string;
   };
+  export let isModal: boolean = false;
 
   let showFullTranscript = false;
   let videoEl: HTMLVideoElement;
@@ -76,9 +80,35 @@
     selectedChapterForTranscript = null;
     showFullTranscript = false;
   }
+
+  // Function to open modal (only if not already in modal)
+  function handleCardClick() {
+    if (!isModal) {
+      openModal({
+        transcription_id: result.transcription_id,
+        videoUrl: result.videoUrl,
+        text: result.text,
+        title: result.title || 'Untitled Video',
+        chapters: result.chapters,
+        thumbnail: result.thumbnail
+      });
+    }
+  }
 </script>
 
-<div class="bg-white shadow rounded-xl p-6">
+<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+<div 
+  class="bg-white shadow rounded-xl p-6"
+  class:cursor-pointer={!isModal}
+  class:hover:shadow-lg={!isModal}
+  class:transition-shadow={!isModal}
+  class:duration-200={!isModal}
+  on:click={!isModal ? handleCardClick : undefined}
+  on:keydown={!isModal ? (e) => (e.key === 'Enter' || e.key === ' ') && handleCardClick() : undefined}
+  role={!isModal ? 'button' : undefined}
+  tabindex={!isModal ? 0 : undefined}
+  aria-label={!isModal ? 'Click to expand video details' : undefined}
+>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     <!-- Left side: Video + Transcript -->
     <div class="md:col-span-2 space-y-4">
@@ -90,21 +120,23 @@
           bind:this={videoEl}
           on:loadedmetadata={handleLoadedMetadata}
           on:timeupdate={handleTimeUpdate}
-        ></video>
+          on:click|stopPropagation
+        >
+          <!-- Placeholder track for accessibility compliance - would be replaced with actual captions -->
+          <track kind="captions" src="data:text/vtt," srclang="en" label="English captions" default />
+        </video>
 
         <!-- Chapter Indicators on progress bar -->
         {#if videoDuration > 0}
           <div
             class="absolute bottom-9 left-0 w-full h-1 pointer-events-none"
-            style="background: transparent;"
           >
             {#each result.chapters as chapter}
               <div
                 class={`absolute top-0 h-1 rounded transition
                   ${activeChapter?.title === chapter.title
-                    ? 'bg-blue-600'
-                    : 'bg-blue-400/70'}
-                `}
+                    ? 'bg-primary-600'
+                    : 'bg-primary-400/70'}`}
                 style="
                   left: {((chapter.start / 1000) / videoDuration) * 100}%;
                   width: {(((chapter.end - chapter.start) / 1000) / videoDuration) * 100}%;
@@ -123,8 +155,8 @@
           </h3>
           {#if selectedChapterForTranscript}
             <button
-              class="text-xs text-blue-600 hover:underline"
-              on:click={showFullVideoTranscript}
+              class="text-xs text-primary-600 hover:underline"
+              on:click|stopPropagation={showFullVideoTranscript}
             >
               ← Back to Full Transcript
             </button>
@@ -146,8 +178,8 @@
         
         {#if !selectedChapterForTranscript}
           <button
-            class="mt-2 text-blue-600 hover:underline text-sm"
-            on:click={() => (showFullTranscript = !showFullTranscript)}
+            class="mt-2 text-primary-600 hover:underline text-sm"
+            on:click|stopPropagation={() => (showFullTranscript = !showFullTranscript)}
           >
             {showFullTranscript ? 'Show Less' : 'View Full Transcript'}
           </button>
@@ -156,7 +188,8 @@
     </div>
 
     <!-- Right side: Chapters -->
-    <div class="md:col-span-1">
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+    <div class="md:col-span-1" on:click|stopPropagation on:keydown|stopPropagation role="region" aria-label="Chapter navigation">
       <ChapterList
         chapters={result.chapters}
         activeChapter={activeChapter?.title ?? null}

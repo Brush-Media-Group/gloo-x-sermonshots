@@ -23,7 +23,7 @@
         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
       />
     {:else}
-      <div class="bg-gradient-to-br from-blue-400 to-indigo-500 w-full h-full flex items-center justify-center">
+      <div class="bg-gradient-to-br from-primary-400 to-secondary-500 w-full h-full flex items-center justify-center">
         <svg class="w-8 h-8 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
         </svg>
@@ -46,7 +46,7 @@
 
   <!-- Content -->
   <div class="p-4">
-    <h4 class="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+    <h4 class="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors duration-200">
       {video.title}
     </h4>
     <p class="text-xs text-gray-600 line-clamp-3 leading-relaxed">
@@ -56,7 +56,7 @@
     <!-- Action Button -->
     <button 
       on:click={handlePlay}
-      class="mt-3 text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
+      class="mt-3 text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
     >
       <span>Watch now</span>
       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
