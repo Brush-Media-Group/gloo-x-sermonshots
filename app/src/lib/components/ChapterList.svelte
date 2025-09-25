@@ -89,9 +89,9 @@
         tabindex="0"
       >
         {#if chapter.isRelevant}
-          <div class="absolute top-2 right-2">
+          <div class="absolute top-2 right-2 flex gap-2">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-              🎯 Relevant
+              🎯 Relevance Score: {chapter.relevanceScore}/5
             </span>
           </div>
         {/if}
