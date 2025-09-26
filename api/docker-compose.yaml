@@ -27,5 +27,15 @@ services:
       - CHROMA_DB_IMPL=duckdb+parquet
       - CHROMA_TELEMETRY_ENABLED=FALSE
 
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redisdata:/data
+
 volumes:
   pgdata:
+  redisdata:

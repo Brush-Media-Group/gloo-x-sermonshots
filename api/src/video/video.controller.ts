@@ -1,14 +1,13 @@
 import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { VideoService } from './video.service';
-import { VideoTranscribeDto } from './video.dto';
 
 @Controller('videos')
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
   @Post('transcribe')
-  async transcribeVideos(@Body() videoTranscribeDto: VideoTranscribeDto) {
-    return this.videoService.transcribeVideos(videoTranscribeDto);
+  async transcribeVideos() {
+    return this.videoService.transcribeVideos();
   }
 
   @Get('search')
@@ -18,14 +17,14 @@ export class VideoController {
         query: '',
         totalResults: 0,
         results: [],
-        relatedContent: []
+        relatedContent: [],
       };
     }
     return this.videoService.searchVector(query);
   }
 
   @Get('health')
-  async healthCheck() {
+  healthCheck() {
     return { status: 'ok', message: 'Video API is running' };
   }
 }

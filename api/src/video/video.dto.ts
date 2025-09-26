@@ -47,3 +47,11 @@ export class VideoTranscribeDto {
   page: number;
   limit: number;
 }
+
+export interface VideoCsvRecord {
+  user_id: string;
+  title: string;
+  video_url: string;
+  video_thumbnail_url: string;
+  createdAt: string;
+}

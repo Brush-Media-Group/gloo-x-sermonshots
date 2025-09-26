@@ -96,10 +96,10 @@ export class ChromaService implements OnModuleInit {
   }
 
   async addTranscript(transcriptId: string, text: string, userId: string) {
-    console.log(`Adding transcript ${transcriptId} to Chroma`);
+    this.logger.debug(`Adding transcript ${transcriptId} to Chroma`);
 
     const chunks = this.chunkText(text);
-    console.log(`Split transcript into ${chunks.length} chunks`);
+    this.logger.debug(`Split transcript into ${chunks.length} chunks`);
 
     if (chunks.length === 1) {
       // Single chunk, use original ID
@@ -125,7 +125,7 @@ export class ChromaService implements OnModuleInit {
   }
 
   async addChapters(transcriptId: string, chapters: Chapter[]) {
-    console.log(`Adding chapters for transcript ${transcriptId}`);
+    this.logger.debug(`Adding chapters for transcript ${transcriptId}`);
 
     const ids: string[] = [];
     const documents: string[] = [];
@@ -169,7 +169,7 @@ export class ChromaService implements OnModuleInit {
   }
 
   async searchVector(searchTerm: string) {
-    console.log(`Searching for: ${searchTerm}`);
+    this.logger.debug(`Searching for: ${searchTerm}`);
 
     // Search both transcripts and chapters
     const [transcriptsQuery, chaptersQuery] = await Promise.all([

@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { VideoModule } from './video/video.module';
 import { AssemblyaiModule } from './assemblyai/assemblyai.module';
 import { ChromaModule } from './chroma/chroma.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -24,6 +25,16 @@ import { ChromaModule } from './chroma/chroma.module';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+        },
+      }),
+      inject: [ConfigService],
     }),
     VideoModule,
     AssemblyaiModule,

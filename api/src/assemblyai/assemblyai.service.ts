@@ -14,7 +14,6 @@ export class AssemblyaiService {
   }
 
   async transcribeVideo(url: string): Promise<Transcript> {
-    console.log(`Transcribing video: ${url}`);
     const transcript = await this.client.transcripts.transcribe({
       audio_url: url,
       auto_chapters: true,

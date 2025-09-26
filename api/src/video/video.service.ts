@@ -4,11 +4,13 @@ import { Repository } from 'typeorm';
 import { Video } from './video.entity';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
-import { AxiosError } from 'axios';
-import { VideoListResponse, VideoTranscribeDto } from './video.dto';
-import { firstValueFrom } from 'rxjs';
 import { AssemblyaiService } from 'src/assemblyai/assemblyai.service';
 import { ChromaService } from 'src/chroma/chroma.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { VideoCsvRecord } from './video.dto';
 
 @Injectable()
 export class VideoService {
@@ -21,109 +23,119 @@ export class VideoService {
     private configService: ConfigService,
     private assemblyaiService: AssemblyaiService,
     private chromaService: ChromaService,
+    @InjectQueue('video') private videoQueue: Queue,
   ) {}
 
-  async transcribeVideos(params: VideoTranscribeDto): Promise<number[]> {
-    this.logger.log(`Transcribing videos for page ${params.page} and limit ${params.limit}`);
-    const baseUrl = this.configService.get<string>('SERMONSHOTS_API_URL');
+  async transcribeVideos(): Promise<void> {
+    const csvFilePath = path.join(process.cwd(), './data/videos.csv');
+    const csvContent = fs.readFileSync(csvFilePath, 'utf-8');
+    const lines = csvContent.trim().split('\n');
+    const headers = lines[0].split(',');
+    const items = lines.slice(1).map((line) => {
+      const values = line.split(',');
+      const item: VideoCsvRecord = {
+        user_id: '',
+        title: '',
+        video_url: '',
+        video_thumbnail_url: '',
+        createdAt: '',
+      };
+      headers.forEach((header, idx) => {
+        item[header.trim().replace(/^"|"$/g, '')] = values[idx]
+          .trim()
+          .replace(/^"|"$/g, '');
+      });
+      return item;
+    });
+    const videoList = items;
 
-    let videoList: VideoListResponse;
-
-    try {
-      const { data } = await firstValueFrom(
-        this.httpService.get<VideoListResponse>(
-          `${baseUrl}/videos?page=${params.page}&limit=${params.limit}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'auth-token': params.accessToken,
-            },
-          },
-        ),
+    for (const video of videoList) {
+      await this.videoQueue.add('transcribe', video);
+      this.logger.debug(
+        `transcribeVideos: Queueing transcription for video title: ${video.title}`,
       );
-
-      videoList = data;
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        this.logger.error(`Error fetching videos: ${error.message}`);
-      } else {
-        this.logger.error(`Unexpected error: ${error}`);
-      }
-      throw error;
     }
 
-    const results: number[] = [];
+    return;
+  }
 
-    for (const video of videoList.items) {
-      const transcript = await this.assemblyaiService.transcribeVideo(
-        video.file.publicUrl,
+  async processTranscription(video: VideoCsvRecord) {
+    this.logger.debug(
+      `processTranscription: Processing transcription for video title: ${video.title}`,
+    );
+
+    const transcript = await this.assemblyaiService.transcribeVideo(
+      video.video_url,
+    );
+
+    if (transcript.status === 'error') {
+      this.logger.error(
+        `processTranscription: Transcription error for video title ${video.title}: ${transcript.error}`,
       );
-
-      if (transcript.status === 'error') {
-        this.logger.error(
-          `Transcription error for video ID ${video.id}: ${transcript.error}`,
-        );
-        continue; // Skip to the next video on error
-      }
-
-      await Promise.all([
-        this.videoRepository
-          .createQueryBuilder('video')
-          .insert()
-          .values({
-            user_id: video.owner,
-            transcript_id: transcript.id,
-            title: video.name,
-            raw_transcript: JSON.stringify(transcript),
-            video_url: video.file.publicUrl,
-            video_thumbnail_url: video.preview.publicUrl,
-            is_public: true,
-          })
-          .execute(),
-        this.chromaService.addTranscript(
-          transcript.id,
-          transcript.text || '',
-          video.owner,
-        ),
-        this.chromaService.addChapters(
-          transcript.id,
-          transcript.chapters ?? [],
-        ),
-      ]);
-
-      results.push(video.id);
+      return; // Skip to the next video on error
     }
 
-    return results;
+    await Promise.all([
+      this.videoRepository
+        .createQueryBuilder('video')
+        .insert()
+        .values({
+          user_id: video.user_id,
+          transcript_id: transcript.id,
+          title: video.title,
+          raw_transcript: JSON.stringify(transcript),
+          video_url: video.video_url,
+          video_thumbnail_url: video.video_thumbnail_url,
+          is_public: true,
+        })
+        .execute(),
+      this.chromaService.addTranscript(
+        transcript.id,
+        transcript.text || '',
+        video.user_id,
+      ),
+      this.chromaService.addChapters(transcript.id, transcript.chapters ?? []),
+    ]);
+
+    this.logger.debug(
+      `processTranscription: Completed processing for video title: ${video.title}`,
+    );
   }
 
   async getVideoByTranscriptId(transcriptId: string) {
-    return this.videoRepository.findOne({ where: { transcript_id: transcriptId }});
+    return this.videoRepository.findOne({
+      where: { transcript_id: transcriptId },
+    });
   }
 
   async searchVector(searchTerm: string) {
-    this.logger.log(`Searching for: ${searchTerm}`);
+    this.logger.debug(`Searching for: ${searchTerm}`);
     try {
       const chromaResults = await this.chromaService.searchVector(searchTerm);
       // Transform the results to match the frontend interface
       const results = await Promise.all(
         chromaResults.map(async (result: any) => {
-          const video = await this.getVideoByTranscriptId(result.transcription_id);
+          const video = await this.getVideoByTranscriptId(
+            result.transcription_id,
+          );
           const fullTranscript = JSON.parse(video?.raw_transcript || '{}');
           const chapters = fullTranscript?.chapters || [];
           const words = fullTranscript?.words || [];
-          
+
           // Helper function to extract transcript text for a chapter
-          const extractChapterTranscript = (startTime: number, endTime: number): string => {
+          const extractChapterTranscript = (
+            startTime: number,
+            endTime: number,
+          ): string => {
             if (!words || words.length === 0) return '';
-            
-            const chapterWords = words.filter((word: any) => 
-              word.start >= startTime && word.end <= endTime
+
+            const chapterWords = words.filter(
+              (word: any) => word.start >= startTime && word.end <= endTime,
             );
-            
+
             return chapterWords.map((word: any) => word.text).join(' ');
           };
-          
+
           // Create a map of matching chapters by their start/end times for easy lookup
           const matchingChapterMap = new Map();
           if (result.matchingChapters) {
@@ -131,11 +143,11 @@ export class VideoService {
               const key = `${matchingChapter.start}-${matchingChapter.end}`;
               matchingChapterMap.set(key, {
                 score: matchingChapter.score,
-                content: matchingChapter.content
+                content: matchingChapter.content,
               });
             });
           }
-          
+
           return {
             transcription_id: result.transcription_id,
             videoUrl: video?.video_url || '',
@@ -144,8 +156,11 @@ export class VideoService {
             chapters: chapters.map((chapter, index) => {
               const key = `${chapter.start}-${chapter.end}`;
               const matchingInfo = matchingChapterMap.get(key);
-              const chapterTranscript = extractChapterTranscript(chapter.start, chapter.end);
-              
+              const chapterTranscript = extractChapterTranscript(
+                chapter.start,
+                chapter.end,
+              );
+
               return {
                 title: chapter.headline || `Chapter ${index + 1}`,
                 summary: chapter.summary,
@@ -160,7 +175,7 @@ export class VideoService {
             // Add summary of most relevant chapters
             relevantChapters: result.matchingChapters || [],
           };
-        })
+        }),
       );
 
       return {
