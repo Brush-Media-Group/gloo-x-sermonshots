@@ -4,6 +4,8 @@
   import ResultCard from '$lib/components/ResultCard.svelte';
   import RelatedVideoCard from '$lib/components/RelatedVideoCard.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import CarouselNavigation from '$lib/components/CarouselNavigation.svelte';
+  import StackedVideoCarousel from '$lib/components/StackedVideoCarousel.svelte';
   import { searchVideos, type SearchResponse, type VideoResult } from '$lib/api';
 
   let searchQuery = '';
@@ -12,6 +14,7 @@
   let isLoading = false;
   let hasSearched = false;
   let totalResults = 0;
+  let currentResultIndex = 0;
 
   async function handleSearch(query: string) {
     if (!query.trim()) return;
@@ -25,14 +28,40 @@
       searchResults = response.results;
       relatedContent = response.relatedContent;
       totalResults = response.totalResults;
+      currentResultIndex = 0; // Reset to first result
     } catch (error) {
       console.error('Search failed:', error);
       searchResults = [];
       relatedContent = [];
       totalResults = 0;
+      currentResultIndex = 0;
     } finally {
       isLoading = false;
     }
+  }
+
+  // Carousel navigation functions
+  function nextResult() {
+    if (currentResultIndex < searchResults.length - 1) {
+      currentResultIndex++;
+    }
+  }
+
+  function previousResult() {
+    if (currentResultIndex > 0) {
+      currentResultIndex--;
+    }
+  }
+
+  // Event handlers for components
+  function handleChapterClick(event: CustomEvent) {
+    console.log('Chapter clicked:', event.detail);
+    // TODO: Implement chapter navigation functionality
+  }
+
+  function handleMoreClick(event: CustomEvent) {
+    console.log('More from sermon clicked:', event.detail);
+    // TODO: Implement more from sermon functionality
   }
 
   // Keyboard shortcuts
@@ -51,6 +80,18 @@
       relatedContent = [];
       hasSearched = false;
       totalResults = 0;
+      currentResultIndex = 0;
+    }
+    
+    // Navigate carousel with arrow keys
+    if (hasSearched && searchResults.length > 1) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        previousResult();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextResult();
+      }
     }
   }
 
@@ -73,20 +114,20 @@
 </script>
 
 <svelte:head>
-  <title>Video Search - Find Sermon Content</title>
-  <meta name="description" content="Search through sermon videos and find specific content with chapters and transcripts" />
+  <title>Sermon Search - Ask Questions About Faith</title>
+  <meta name="description" content="Ask questions about faith and discover sermons that provide biblical answers" />
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-primary-50 to-secondary-50">
+<div class="min-h-screen bg-gray-50">
   <!-- Header with Search -->
-  <header class="bg-white/80 backdrop-blur-sm shadow-sm border-b border-white/20 sticky top-0 z-10">
-    <div class="max-w-6xl mx-auto px-4 py-6">
-      <div class="text-center mb-6">
-        <h1 class="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-2">
-          Sermon Video Search
+  <header class="bg-white sticky top-0 z-10 border-b border-gray-100">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <div class="text-center mb-8">
+        <h1 class="text-5xl font-bold text-sky-500 mb-4">
+          Sermon Search
         </h1>
-        <p class="text-gray-600 text-sm">
-          Discover meaningful content across our sermon library
+        <p class="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+          Ask questions about faith and discover sermons that provide biblical answers. Search through chapters to find exactly what you're looking for.
         </p>
       </div>
       <SearchBar 
@@ -94,6 +135,18 @@
         onSearch={handleSearch}
         {isLoading}
       />
+      
+      <!-- Search Suggestions -->
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        {#each ['How do I find purpose in life?', 'What does the Bible say about forgiveness?', 'How to deal with anxiety and fear?', 'Building stronger relationships', 'Understanding God\'s love'] as suggestion}
+          <button 
+            class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition-colors duration-200"
+            on:click={() => handleSearch(suggestion)}
+          >
+            {suggestion}
+          </button>
+        {/each}
+      </div>
     </div>
   </header>
 
@@ -135,29 +188,26 @@
         </div>
       </div>
     {:else if hasSearched && searchResults.length > 0}
-      <!-- Search Results -->
-      <div class="space-y-8 animate-fadeInUp">
-        <!-- Results Header -->
-        <div class="flex items-center justify-between bg-white/60 backdrop-blur-sm rounded-xl p-4 border border-white/40">
-          <h2 class="text-xl font-semibold text-gray-800">
-            Results for "<span class="text-primary-600">{searchQuery}</span>"
-          </h2>
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span class="text-sm text-gray-600 font-medium">
-              {totalResults} result{totalResults !== 1 ? 's' : ''} found
-            </span>
-          </div>
-        </div>
+      <!-- Search Results Carousel -->
+      <div class="animate-fadeInUp">
+        <!-- Carousel Navigation -->
+        <CarouselNavigation 
+          currentIndex={currentResultIndex}
+          totalItems={searchResults.length}
+          itemLabel="sermons"
+          on:previous={previousResult}
+          on:next={nextResult}
+        />
 
-        <!-- Results List -->
-        <div class="space-y-8">
-          {#each searchResults as result, index}
-            <div class="animate-fadeInUp" style="animation-delay: {index * 0.1}s">
-              <ResultCard {result} />
-            </div>
-          {/each}
-        </div>
+        <!-- Current Result -->
+        {#if searchResults.length > 0}
+          <StackedVideoCarousel 
+            sermons={searchResults}
+            currentIndex={currentResultIndex}
+            on:chapterClick={handleChapterClick}
+            on:moreClick={handleMoreClick}
+          />
+        {/if}
 
         <!-- Related Content Section -->
         {#if relatedContent.length > 0}
@@ -182,85 +232,75 @@
       </div>
     {:else}
       <!-- Welcome State -->
-      <div class="text-center py-20 animate-fadeInUp">
-        <div class="max-w-4xl mx-auto">
-          <!-- Hero Section -->
-          <div class="mb-16">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl mb-6 shadow-lg">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-primary-800 to-secondary-800 bg-clip-text text-transparent mb-6">
-              Discover Sermon Content
-            </h2>
-            <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Search through our comprehensive sermon library to find specific topics, Bible verses, and spiritual insights. 
-              Every video includes timestamped chapters and full transcripts for easy navigation.
-            </p>
-            
-            <!-- Quick Search Suggestions -->
-            <div class="flex flex-wrap justify-center gap-3 mb-12">
-              <span class="text-sm text-gray-500 mr-2">Popular searches:</span>
-              {#each ['Faith', 'Hope', 'Love', 'Forgiveness', 'Prayer'] as suggestion}
-                <button 
-                  class="px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-gray-700 hover:bg-white/80 hover:border-primary-300 transition-all duration-200 hover:scale-105"
-                  on:click={() => handleSearch(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              {/each}
-            </div>
-          </div>
-
+      <div class="py-16">
+        <div class="max-w-6xl mx-auto">
           <!-- Features Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-            <div class="group bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-white/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div class="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-center">
+              <div class="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-3">Smart Search</h3>
+              <h3 class="text-xl font-bold text-gray-900 mb-4">Smart Search</h3>
               <p class="text-gray-600 leading-relaxed">
-                Search through full transcripts and find exact moments in videos. Our intelligent search understands context and meaning.
+                Ask natural questions about faith and get relevant sermon chapters that address your specific concerns.
               </p>
             </div>
 
-            <div class="group bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-white/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-center">
+              <div class="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-3">Chapter Navigation</h3>
+              <h3 class="text-xl font-bold text-gray-900 mb-4">Chapter Navigation</h3>
               <p class="text-gray-600 leading-relaxed">
-                Jump to specific sections with timestamped chapters. Each chapter includes summaries and key points for quick reference.
+                Browse through sermon chapters with summaries to find the exact teaching that answers your question.
               </p>
             </div>
 
-            <div class="group bg-white/60 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-white/40 hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" />
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-center">
+              <div class="w-16 h-16 bg-sky-500 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-3">Interactive Playback</h3>
+              <h3 class="text-xl font-bold text-gray-900 mb-4">Instant Results</h3>
               <p class="text-gray-600 leading-relaxed">
-                Watch videos with synchronized transcripts and interactive chapters. Pause, rewind, and explore content at your own pace.
+                Get relevance scores and highlighted chapters that best match your search query with direct video links.
               </p>
             </div>
           </div>
 
-          <!-- Call to Action -->
-          <div class="mt-16 p-8 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-2xl border border-primary-100">
-            <h3 class="text-xl font-bold text-gray-900 mb-3">Ready to explore?</h3>
-            <p class="text-gray-600 mb-4">
-              Start by searching for a topic, Bible verse, or keyword in the search bar above.
+          <!-- Popular Questions Section -->
+          <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Try These Popular Questions</h2>
+            <p class="text-gray-600 text-lg">
+              Get started with these common faith-based questions
             </p>
-            <div class="text-sm text-gray-500">
-              💡 Tip: Try searching for specific Bible books like "Romans" or topics like "salvation"
-            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('How do I find purpose in life?')}>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I find purpose in life?</h3>
+              <p class="text-gray-600 text-sm">Discover God's calling and live with intentionality</p>
+            </button>
+
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('What does the Bible say about forgiveness?')}>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">What does the Bible say about forgiveness?</h3>
+              <p class="text-gray-600 text-sm">Learn about biblical forgiveness and healing</p>
+            </button>
+
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('How to deal with anxiety and fear?')}>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">How to deal with anxiety and fear?</h3>
+              <p class="text-gray-600 text-sm">Find peace through faith and biblical tools</p>
+            </button>
+
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('Building stronger relationships')}>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Building stronger relationships</h3>
+              <p class="text-gray-600 text-sm">Create God-centered connections with others</p>
+            </button>
           </div>
         </div>
       </div>

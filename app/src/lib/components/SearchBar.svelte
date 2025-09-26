@@ -1,7 +1,7 @@
 <script lang="ts">
   export let value = '';
   export let onSearch: (query: string) => void = () => {};
-  export let placeholder = 'Search sermons, topics, or keywords...';
+  export let placeholder = 'Ask a question about faith or search for sermon topics...';
   export let isLoading = false;
   export let debounceMs = 500; // Configurable debounce delay
   export let minSearchLength = 2; // Minimum characters before searching
@@ -54,10 +54,10 @@
   }
 </script>
 
-<form on:submit={handleSubmit} class="w-full max-w-3xl mx-auto">
-  <div class="relative flex items-center bg-white rounded-xl shadow-lg border border-gray-200 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-200 transition-all duration-200">
+<form on:submit={handleSubmit} class="w-full max-w-4xl mx-auto">
+  <div class="relative flex items-center bg-white rounded-full shadow-lg border border-gray-200 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 transition-all duration-200">
     <!-- Search Icon -->
-    <div class="pl-4 pr-2">
+    <div class="pl-6 pr-2">
       <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
@@ -71,7 +71,7 @@
       {placeholder}
       disabled={isLoading}
       on:keydown={handleKeydown}
-      class="flex-1 py-4 px-2 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 disabled:opacity-50"
+      class="flex-1 py-4 px-3 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 disabled:opacity-50 text-base"
       autocomplete="off"
       spellcheck="false"
     />
@@ -80,7 +80,7 @@
     <button
       type="submit"
       disabled={!term.trim() || isLoading}
-      class="m-1 px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
+      class="m-2 px-8 py-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-medium"
     >
       {#if isLoading}
         <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
@@ -89,15 +89,11 @@
         </svg>
         <span class="hidden sm:inline">Searching...</span>
       {:else}
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z" />
+        </svg>
         <span>Search</span>
       {/if}
     </button>
-  </div>
-
-  <!-- Search Suggestions/Tips -->
-  <div class="mt-3 text-center">
-    <p class="text-sm text-gray-500">
-      Try searching for topics like "faith", "hope", "forgiveness", or specific Bible verses
-    </p>
   </div>
 </form>
