@@ -206,8 +206,8 @@ export class ChromaService implements OnModuleInit {
           ] as unknown as ChapterMetadata;
           if (chapterMetadata?.transcription_id === transcription_id) {
             const rawScore = chaptersQuery.distances?.[0]?.[chapterIndex] || 0;
-            // Normalize to 1-5 (higher is more relevant)
-            const relevance = Math.round((1 - rawScore / maxDistance) * 4 + 1);
+            // Normalize to 1-100 (higher is more relevant)
+            const relevance = Math.round((1 - rawScore / maxDistance) * 99 + 1);
             matchingChapters.push({
               content: chapterDoc,
               start: chapterMetadata.start,

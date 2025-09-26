@@ -42,7 +42,7 @@
         {chapter.title}
         {#if chapter.isRelevant}
           <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-            🎯 Relevance Score: {chapter.relevanceScore}/5
+            🎯 Relevance Score: {chapter.relevanceScore}/100
           </span>
         {/if}
       </h4>
@@ -59,7 +59,7 @@
         {chapter.title}
         {#if chapter.isRelevant}
           <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-            🎯 Relevance Score: {chapter.relevanceScore}/5
+            🎯 Relevance Score: {chapter.relevanceScore}/100
           </span>
         {/if}
       </h4>
