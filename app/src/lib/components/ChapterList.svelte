@@ -92,7 +92,7 @@
         {#if chapter.isRelevant}
           <div class="absolute top-2 right-2 flex gap-2">
             <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-              🎯 Relevance Score: {chapter.relevanceScore}/100
+              🎯 Relevance Score: {chapter.relevanceScore}
             </span>
           </div>
         {/if}
