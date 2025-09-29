@@ -40,7 +40,7 @@
     }
     
     // Only search if term meets minimum length requirement and is different from last search
-    if (term && term.trim().length >= minSearchLength && term.trim() !== lastSearchTerm.trim()) {
+    /* if (term && term.trim().length >= minSearchLength && term.trim() !== lastSearchTerm.trim()) {
       debounceTimer = setTimeout(() => {
         if (!isLoading && term.trim() !== lastSearchTerm.trim()) {
           lastSearchTerm = term.trim();
@@ -50,7 +50,7 @@
     } else if (!term || term.trim().length === 0) {
       // Reset lastSearchTerm when input is empty
       lastSearchTerm = '';
-    }
+    } */
   }
 </script>
 
