@@ -75,6 +75,7 @@
   <!-- Scrollable chapters list with max height -->
   <div class="space-y-3 max-h-96 overflow-y-auto pr-2" bind:this={scrollContainer}>
     {#each chapters as chapter, index}
+      {#if chapter.relevanceScore && chapter.relevanceScore > 0}
       <div data-chapter-index={index}>
         <ChapterCard 
           {chapter} 
@@ -82,6 +83,7 @@
           on:click={handleChapterClick}
         />
       </div>
+      {/if}
     {/each}
   </div>
   
