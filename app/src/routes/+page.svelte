@@ -120,7 +120,7 @@
 
 <div class="min-h-screen bg-gray-50">
   <!-- Header with Search -->
-  <header class="bg-white sticky top-0 z-10 border-b border-gray-100">
+  <header class="bg-white top-0 z-10 border-b border-gray-100">
     <div class="max-w-4xl mx-auto px-4 py-12">
       <div class="text-center mb-8">
         <h1 class="text-5xl font-bold text-sky-500 mb-4">
