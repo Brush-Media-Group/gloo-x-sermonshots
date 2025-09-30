@@ -2,6 +2,8 @@
   import { createEventDispatcher } from 'svelte';
   import VideoPlayer from './VideoPlayer.svelte';
   import ChaptersList from './ChaptersList.svelte';
+  import AIAnalysisCard from './AIAnalysisCard.svelte';
+  import type { AIAnalysis } from '$lib/types';
 
   export let sermon: {
     transcription_id: string;
@@ -17,6 +19,7 @@
       relevanceScore?: number | null;
       transcript?: string;
     }>;
+    aiAnalysis?: AIAnalysis;
   };
 
   const dispatch = createEventDispatcher();
@@ -45,6 +48,11 @@
   <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
     {sermon.title || 'Untitled Sermon'}
   </h2>
+  
+  <!-- AI Analysis (if available) -->
+  {#if sermon.aiAnalysis}
+    <AIAnalysisCard analysis={sermon.aiAnalysis} />
+  {/if}
   
   <!-- Main Result Layout -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl shadow-lg p-8">

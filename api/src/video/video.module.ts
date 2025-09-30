@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { AssemblyaiModule } from 'src/assemblyai/assemblyai.module';
 import { ChromaModule } from 'src/chroma/chroma.module';
+import { OpenaiModule } from 'src/openai/openai.module';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({
@@ -17,6 +18,7 @@ import { BullModule } from '@nestjs/bullmq';
     HttpModule,
     AssemblyaiModule,
     ChromaModule,
+    OpenaiModule,
     BullModule.registerQueue({ name: 'video' }),
   ],
   controllers: [VideoController],

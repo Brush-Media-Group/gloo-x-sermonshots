@@ -2,7 +2,9 @@
   import { createEventDispatcher } from 'svelte';
   import VideoPlayer from './VideoPlayer.svelte';
   import ChaptersList from './ChaptersList.svelte';
+  import AIAnalysisCard from './AIAnalysisCard.svelte';
   import { openModal } from '$lib/stores/modalStore';
+  import type { AIAnalysis } from '$lib/types';
 
   export let sermons: Array<{
     transcription_id: string;
@@ -19,6 +21,7 @@
       relevanceScore?: number | null;
       transcript?: string;
     }>;
+    aiAnalysis?: AIAnalysis;
   }> = [];
   export let currentIndex: number = 0;
 
@@ -58,8 +61,20 @@
 </script>
 
 <div class="max-w-6xl mx-auto">
+  <!-- Sermon Title -->
+  {#if currentSermon}
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+      {currentSermon.title || 'Untitled Sermon'}
+    </h2>
+  {/if}
+  
+  <!-- AI Analysis (if available) -->
+  {#if currentSermon?.aiAnalysis}
+    <AIAnalysisCard analysis={currentSermon.aiAnalysis} />
+  {/if}
+  
   <!-- Main Result Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl shadow-lg p-8">
     <!-- Left: Layered Video Player -->
     <div class="relative">
       <!-- Left placeholder video -->

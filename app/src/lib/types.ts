@@ -1,3 +1,11 @@
+export interface AIAnalysis {
+  answersQuestion: boolean;
+  relevantExcerpts: string[];
+  bestAnswer: string;
+  confidence: number;
+  reasoning: string;
+}
+
 export interface VideoResult {
   transcription_id: string;
   videoUrl: string;
@@ -5,6 +13,7 @@ export interface VideoResult {
   chapters: Chapter[];
   title?: string;
   thumbnail?: string;
+  aiAnalysis?: AIAnalysis;
 }
 
 export interface Chapter {
@@ -27,4 +36,5 @@ export interface SearchResponse {
   relatedContent: RelatedVideo[];
   query: string;
   totalResults: number;
+  aiEnhanced?: boolean;
 }
