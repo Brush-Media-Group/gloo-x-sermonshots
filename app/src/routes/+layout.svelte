@@ -7,6 +7,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<script src="https://kit.fontawesome.com/4f11e66f04.js" crossorigin="anonymous"></script>
 </svelte:head>
 
 {@render children?.()}

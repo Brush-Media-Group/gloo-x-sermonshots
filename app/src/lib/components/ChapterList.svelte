@@ -91,16 +91,16 @@
       >
         {#if chapter.isRelevant}
           <div class="absolute top-2 right-2 flex gap-2">
-            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-              🎯 Relevance Score: {chapter.relevanceScore}
+            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              {chapter.relevanceScore} %
             </span>
           </div>
         {/if}
         <div class="flex justify-between items-start mb-1">
           <p class="font-medium text-gray-800 pr-16">{chapter.title}</p>
-          <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+          <!-- <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded"> -->
             {formatTime(chapter.start)}
-          </span>
+          <!-- </span> -->
         </div>
         <p class="text-xs text-gray-600">{chapter.summary}</p>
       </div>

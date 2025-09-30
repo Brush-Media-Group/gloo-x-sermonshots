@@ -41,12 +41,13 @@
       <h4 class="font-medium text-gray-900 flex-1 pr-4">
         {chapter.title}
         {#if chapter.isRelevant}
-          <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-            🎯 Relevance Score: {chapter.relevanceScore}
+          <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            {chapter.relevanceScore} %
           </span>
         {/if}
       </h4>
-      <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+      <span class="text-xs text-gray-500 px-2 py-1 rounded">
+        <i class="fa-regular fa-clock mr-1"></i>
         {formatTime(chapter.start)}
       </span>
     </div>
@@ -58,14 +59,14 @@
       <h4 class="font-medium text-gray-900 flex-1 pr-4">
         {chapter.title}
         {#if chapter.isRelevant}
-          <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary-100 text-secondary-800">
-            🎯 Relevance Score: {chapter.relevanceScore}
+          <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            {chapter.relevanceScore} %
           </span>
         {/if}
       </h4>
-      <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+      <!-- <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded"> -->
         {formatTime(chapter.start)}
-      </span>
+      <!-- </span> -->
     </div>
     <p class="text-sm text-gray-600">{chapter.summary}</p>
   </div>
