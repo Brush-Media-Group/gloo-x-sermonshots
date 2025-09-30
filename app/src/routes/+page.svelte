@@ -134,7 +134,6 @@
         </p>
       </div>
       <SearchBar 
-        value={searchQuery} 
         onSearch={handleSearch}
         {isLoading}
         showCurrentSearch={searchResults.length > 0}
