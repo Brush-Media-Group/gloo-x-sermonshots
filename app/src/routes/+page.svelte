@@ -64,6 +64,14 @@
     // TODO: Implement more from sermon functionality
   }
 
+  function handleClearSearch() {
+    searchQuery = '';
+    searchResults = [];
+    relatedContent = [];
+    hasSearched = false;
+    currentResultIndex = 0;
+  }
+
   // Keyboard shortcuts
   function handleKeydown(e: KeyboardEvent) {
     // Focus search bar with Ctrl+K or Cmd+K
@@ -75,13 +83,8 @@
     
     // Clear search with Escape
     if (e.key === 'Escape' && hasSearched) {
-      searchQuery = '';
-      searchResults = [];
-      relatedContent = [];
-      hasSearched = false;
-      totalResults = 0;
-      currentResultIndex = 0;
-    }
+      handleClearSearch();
+    } 
     
     // Navigate carousel with arrow keys
     if (hasSearched && searchResults.length > 1) {
@@ -134,6 +137,9 @@
         value={searchQuery} 
         onSearch={handleSearch}
         {isLoading}
+        showCurrentSearch={searchResults.length > 0}
+        currentSearchTerm={searchResults.length > 0 ? searchQuery : ''}
+        onClear={handleClearSearch}
       />
       
       <!-- Search Suggestions -->
