@@ -5,9 +5,13 @@
   export let showCurrentSearch = false; // Whether to show the current search term
   export let currentSearchTerm = ''; // The current active search term
   export let onClear: (() => void) | null = null; // Optional clear function
+  export let value = ''; // Reactive prop to set search term from outside
   
   let term = '';
   let inputRef: HTMLInputElement;
+
+  // Make the search bar reactive to external value changes
+  $: term = value;
 
   function handleSubmit(e: Event) {
     e.preventDefault();
@@ -18,9 +22,14 @@
 
   function handleClear() {
     term = '';
+    value = '';
     if (onClear) {
       onClear();
     }
+  }
+
+  function handleInput() {
+    value = term;
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -79,6 +88,7 @@
       {placeholder}
       disabled={isLoading}
       on:keydown={handleKeydown}
+      on:input={handleInput}
       class="flex-1 py-4 px-3 bg-transparent border-none outline-none text-gray-900 placeholder-gray-500 disabled:opacity-50 text-base"
       autocomplete="off"
       spellcheck="false"

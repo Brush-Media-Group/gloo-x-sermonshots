@@ -9,6 +9,7 @@
   import { searchVideos, type SearchResponse, type VideoResult } from '$lib/api';
 
   let searchQuery = '';
+  let searchInputValue = ''; // Reactive value for search input
   let searchResults: VideoResult[] = [];
   let relatedContent: any[] = [];
   let isLoading = false;
@@ -66,10 +67,16 @@
 
   function handleClearSearch() {
     searchQuery = '';
+    searchInputValue = '';
     searchResults = [];
     relatedContent = [];
     hasSearched = false;
     currentResultIndex = 0;
+  }
+
+  function handleSuggestionClick(suggestion: string) {
+    searchInputValue = suggestion;
+    handleSearch(suggestion);
   }
 
   // Keyboard shortcuts
@@ -139,6 +146,7 @@
         showCurrentSearch={searchResults.length > 0}
         currentSearchTerm={searchResults.length > 0 ? searchQuery : ''}
         onClear={handleClearSearch}
+        bind:value={searchInputValue}
       />
       
       <!-- Search Suggestions -->
@@ -146,7 +154,7 @@
         {#each ['How do I find purpose in life?', 'What does the Bible say about forgiveness?', 'How to deal with anxiety and fear?', 'Building stronger relationships', 'Understanding God\'s love'] as suggestion}
           <button 
             class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition-colors duration-200"
-            on:click={() => handleSearch(suggestion)}
+            on:click={() => handleSuggestionClick(suggestion)}
           >
             {suggestion}
           </button>
@@ -287,22 +295,22 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('How do I find purpose in life?')}>
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSuggestionClick('How do I find purpose in life?')}>
               <h3 class="text-lg font-semibold text-gray-900 mb-2">How do I find purpose in life?</h3>
               <p class="text-gray-600 text-sm">Discover God's calling and live with intentionality</p>
             </button>
 
-            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('What does the Bible say about forgiveness?')}>
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSuggestionClick('What does the Bible say about forgiveness?')}>
               <h3 class="text-lg font-semibold text-gray-900 mb-2">What does the Bible say about forgiveness?</h3>
               <p class="text-gray-600 text-sm">Learn about biblical forgiveness and healing</p>
             </button>
 
-            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('How to deal with anxiety and fear?')}>
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSuggestionClick('How to deal with anxiety and fear?')}>
               <h3 class="text-lg font-semibold text-gray-900 mb-2">How to deal with anxiety and fear?</h3>
               <p class="text-gray-600 text-sm">Find peace through faith and biblical tools</p>
             </button>
 
-            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSearch('Building stronger relationships')}>
+            <button class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left" on:click={() => handleSuggestionClick('Building stronger relationships')}>
               <h3 class="text-lg font-semibold text-gray-900 mb-2">Building stronger relationships</h3>
               <p class="text-gray-600 text-sm">Create God-centered connections with others</p>
             </button>
