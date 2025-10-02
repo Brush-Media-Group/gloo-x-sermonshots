@@ -18,10 +18,12 @@ export class OpenaiService {
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     if (!apiKey) {
-      this.logger.warn('OpenAI API key not found. AI analysis will be disabled.');
+      this.logger.warn(
+        'OpenAI API key not found. AI analysis will be disabled.',
+      );
       return;
     }
-    
+
     this.openai = new OpenAI({
       apiKey: apiKey,
     });
@@ -30,7 +32,7 @@ export class OpenaiService {
   async analyzeSearchResult(
     query: string,
     transcriptText: string,
-    chapters: any[]
+    chapters: any[],
   ): Promise<AnalyzedResult> {
     if (!this.openai) {
       return {
@@ -38,24 +40,25 @@ export class OpenaiService {
         relevantExcerpts: [],
         bestAnswer: '',
         confidence: 0,
-        reasoning: 'OpenAI service not available'
+        reasoning: 'OpenAI service not available',
       };
     }
 
     try {
       const prompt = this.buildAnalysisPrompt(query, transcriptText, chapters);
-      
+
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a biblical scholar and sermon analyst. Your task is to analyze sermon transcripts and determine if they answer specific faith-related questions, then extract the most relevant parts that provide the best answers.'
+            content:
+              'You are a biblical scholar and sermon analyst. Your task is to analyze sermon transcripts and determine if they answer specific faith-related questions, then extract the most relevant parts that provide the best answers.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.3,
         max_tokens: 1000,
@@ -74,14 +77,21 @@ export class OpenaiService {
         relevantExcerpts: [],
         bestAnswer: '',
         confidence: 0,
-        reasoning: `Analysis failed: ${error.message}`
+        reasoning: `Analysis failed: ${error.message}`,
       };
     }
   }
 
-  private buildAnalysisPrompt(query: string, transcriptText: string, chapters: any[]): string {
+  private buildAnalysisPrompt(
+    query: string,
+    transcriptText: string,
+    chapters: any[],
+  ): string {
     const chapterSummaries = chapters
-      .map((chapter, index) => `Chapter ${index + 1}: ${chapter.title || 'Untitled'} - ${chapter.summary || 'No summary'}`)
+      .map(
+        (chapter, index) =>
+          `Chapter ${index + 1}: ${chapter.title || 'Untitled'} - ${chapter.summary || 'No summary'}`,
+      )
       .join('\n');
 
     return `
@@ -94,12 +104,19 @@ Chapter Summaries:
 ${chapterSummaries}
 
 Please analyze this sermon transcript and determine:
-
 1. Does this sermon content answer or address the question/query?
 2. What are the most relevant excerpts (2-3 short passages) that directly relate to the question?
 3. What is the best single answer or insight from this sermon that addresses the question?
-4. How confident are you that this sermon addresses the question? (0-100%)
+4. How confident are you that this sermon addresses the question?
+    When assigning a confidence score, be conservative and self-critical. Only assign high confidence if the answer is direct and strongly supported by the transcript. If there is any doubt, ambiguity, or lack of direct evidence, lower your confidence score. Use the following scale:
+    - 85-100: Direct, clear answer with strong evidence (e.g., explicit quotes).
+    - 50-84: Partial or inferred answer, some uncertainty.
+    - 0-49: Unclear, ambiguous, or not addressed.
+    Example: If the answer is only partially supported or inferred, do NOT assign a score above 84.
+    Penalize yourself for overconfidence. If there is any doubt, ambiguity, or lack of direct evidence, lower your confidence score.
 5. Provide reasoning for your assessment.
+
+Calibration: Imagine you are being graded for accuracy. Only assign high confidence if you are certain and can cite direct evidence.
 
 Respond in the following JSON format:
 {
@@ -123,13 +140,16 @@ Focus on extracting actual quotes or paraphrases from the sermon content. If the
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       return {
         answersQuestion: parsed.answersQuestion || false,
-        relevantExcerpts: Array.isArray(parsed.relevantExcerpts) ? parsed.relevantExcerpts : [],
+        relevantExcerpts: Array.isArray(parsed.relevantExcerpts)
+          ? parsed.relevantExcerpts
+          : [],
         bestAnswer: parsed.bestAnswer || '',
-        confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
-        reasoning: parsed.reasoning || 'No reasoning provided'
+        confidence:
+          typeof parsed.confidence === 'number' ? parsed.confidence : 0,
+        reasoning: parsed.reasoning || 'No reasoning provided',
       };
     } catch (error) {
       this.logger.error(`Error parsing OpenAI response: ${error}`);
@@ -138,27 +158,31 @@ Focus on extracting actual quotes or paraphrases from the sermon content. If the
         relevantExcerpts: [],
         bestAnswer: '',
         confidence: 0,
-        reasoning: 'Failed to parse AI analysis'
+        reasoning: 'Failed to parse AI analysis',
       };
     }
   }
 
   async batchAnalyzeResults(
     query: string,
-    results: Array<{ transcriptText: string; chapters: any[]; transcription_id: string }>
+    results: Array<{
+      transcriptText: string;
+      chapters: any[];
+      transcription_id: string;
+    }>,
   ): Promise<Map<string, AnalyzedResult>> {
     const analysisMap = new Map<string, AnalyzedResult>();
-    
+
     // Process results in parallel but with a reasonable concurrency limit
     const batchSize = 3;
     for (let i = 0; i < results.length; i += batchSize) {
       const batch = results.slice(i, i + batchSize);
-      
+
       const batchPromises = batch.map(async (result) => {
         const analysis = await this.analyzeSearchResult(
           query,
           result.transcriptText,
-          result.chapters
+          result.chapters,
         );
         return { id: result.transcription_id, analysis };
       });
