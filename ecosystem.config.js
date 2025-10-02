@@ -2,7 +2,8 @@ module.exports = {
   apps: [
     {
       name: "gloo-x-sermonshots-api",
-      script: "api/dist/src/main.js",
+      cwd: "./api",
+      script: "dist/src/main.js",
       instances: "2",       // or 1 for single instance
       exec_mode: "cluster",   // or "fork" if you prefer
       env: {
@@ -12,7 +13,8 @@ module.exports = {
     },
     {
       name: "gloo-x-sermonshots-app",
-      script: "app/build/index.js",
+      cwd: "./app",
+      script: "build/index.js",
       instances: "2",       // or 1 for single instance
       exec_mode: "cluster",   // or "fork" if you prefer
       env: {
