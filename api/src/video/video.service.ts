@@ -276,13 +276,17 @@ export class VideoService {
         return b.aiAnalysis.confidence - a.aiAnalysis.confidence;
       });
 
-      this.logger.debug(`Search completed: ${enhancedResults.length} results with AI-enhanced chapter relevance`);
+      // Split results: top 3 as main results, remaining as related content
+      const mainResults = enhancedResults.slice(0, 3);
+      const relatedContent = enhancedResults.slice(3);
+
+      this.logger.debug(`Search completed: ${mainResults.length} main results, ${relatedContent.length} related content items`);
 
       return {
         query: searchTerm,
         totalResults: enhancedResults.length,
-        results: enhancedResults,
-        relatedContent: [], // Can be enhanced later
+        results: mainResults,
+        relatedContent: relatedContent,
         aiEnhanced: true, // Flag to indicate AI analysis was performed
       };
     } catch (error) {
