@@ -168,6 +168,84 @@ export class ChromaService implements OnModuleInit {
     }
   }
 
+  async searchTranscripts(searchTerm: string) {
+    this.logger.debug(`Searching transcripts for: ${searchTerm}`);
+
+    const transcriptsQuery = await this.transcripts.query({
+      queryTexts: [searchTerm],
+      nResults: 5,
+    });
+
+    const results = transcriptsQuery.documents[0].map((doc, i) => {
+      const metadata = transcriptsQuery?.metadatas?.[0]?.[
+        i
+      ] as unknown as TranscriptMetadata;
+      
+      return {
+        doc,
+        transcription_id: metadata?.transcription_id,
+      };
+    });
+
+    return results;
+  }
+
+  async searchChaptersForTranscripts(searchTerms: string[], transcriptIds: string[]) {
+    this.logger.debug(`Searching chapters for transcripts: ${transcriptIds.join(', ')} with terms: ${searchTerms.join(', ')}`);
+
+    // Combine all search terms into one query for better results
+    const combinedSearchTerm = searchTerms.join(' ');
+    
+    const chaptersQuery = await this.chapters.query({
+      queryTexts: [combinedSearchTerm],
+      nResults: 20, // Get more results to filter by transcript IDs
+    });
+
+    // Find max distance for normalization
+    const allDistances = (chaptersQuery.distances?.[0] ?? []).filter(
+      (d): d is number => d !== null,
+    );
+    const maxDistance = Math.max(...allDistances, 1); // Avoid division by zero
+
+    // Group results by transcript ID and filter for our target transcripts
+    const resultsByTranscript = new Map<string, any[]>();
+
+    chaptersQuery.documents[0].forEach((chapterDoc, chapterIndex) => {
+      const chapterMetadata = chaptersQuery?.metadatas?.[0]?.[
+        chapterIndex
+      ] as unknown as ChapterMetadata;
+      
+      const transcription_id = chapterMetadata?.transcription_id;
+      
+      // Only include chapters from our target transcripts
+      if (transcription_id && transcriptIds.includes(transcription_id)) {
+        const rawScore = chaptersQuery.distances?.[0]?.[chapterIndex] || 0;
+        // Normalize to 1-100 (higher is more relevant)
+        const relevance = Math.round((1 - rawScore / maxDistance) * 99 + 1);
+        
+        const chapterResult = {
+          content: chapterDoc,
+          start: chapterMetadata.start,
+          end: chapterMetadata.end,
+          score: relevance,
+        };
+
+        if (!resultsByTranscript.has(transcription_id)) {
+          resultsByTranscript.set(transcription_id, []);
+        }
+        resultsByTranscript.get(transcription_id)!.push(chapterResult);
+      }
+    });
+
+    // Sort chapters within each transcript by relevance score and limit to top 3
+    resultsByTranscript.forEach((chapters, transcriptId) => {
+      chapters.sort((a, b) => b.score - a.score);
+      resultsByTranscript.set(transcriptId, chapters.slice(0, 3));
+    });
+
+    return resultsByTranscript;
+  }
+
   async searchVector(searchTerm: string) {
     this.logger.debug(`Searching for: ${searchTerm}`);
 
@@ -175,7 +253,7 @@ export class ChromaService implements OnModuleInit {
     const [transcriptsQuery, chaptersQuery] = await Promise.all([
       this.transcripts.query({
         queryTexts: [searchTerm],
-        nResults: 10,
+        nResults: 5,
       }),
       this.chapters.query({
         queryTexts: [searchTerm],

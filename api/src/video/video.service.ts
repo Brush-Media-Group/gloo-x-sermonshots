@@ -113,11 +113,23 @@ export class VideoService {
   async searchVector(searchTerm: string) {
     this.logger.debug(`Searching for: ${searchTerm}`);
     try {
-      const chromaResults = await this.chromaService.searchVector(searchTerm);
+      // Step 1: Search transcripts first (similarity search)
+      this.logger.debug('Step 1: Performing transcript similarity search');
+      const transcriptResults = await this.chromaService.searchTranscripts(searchTerm);
       
-      // Transform the results to match the frontend interface
+      if (transcriptResults.length === 0) {
+        return {
+          query: searchTerm,
+          totalResults: 0,
+          results: [],
+          relatedContent: [],
+          aiEnhanced: true,
+        };
+      }
+
+      // Step 2: Transform transcript results and prepare for AI analysis
       const results = await Promise.all(
-        chromaResults.map(async (result: any) => {
+        transcriptResults.map(async (result: any) => {
           const video = await this.getVideoByTranscriptId(
             result.transcription_id,
           );
@@ -139,21 +151,8 @@ export class VideoService {
             return chapterWords.map((word: any) => word.text).join(' ');
           };
 
-          // Create a map of matching chapters by their start/end times for easy lookup
-          const matchingChapterMap = new Map();
-          if (result.matchingChapters) {
-            result.matchingChapters.forEach((matchingChapter: any) => {
-              const key = `${matchingChapter.start}-${matchingChapter.end}`;
-              matchingChapterMap.set(key, {
-                score: matchingChapter.score,
-                content: matchingChapter.content,
-              });
-            });
-          }
-
+          // Initially, no chapters are marked as relevant (will be determined by AI)
           const processedChapters = chapters.map((chapter, index) => {
-            const key = `${chapter.start}-${chapter.end}`;
-            const matchingInfo = matchingChapterMap.get(key);
             const chapterTranscript = extractChapterTranscript(
               chapter.start,
               chapter.end,
@@ -164,9 +163,9 @@ export class VideoService {
               summary: chapter.summary,
               start: chapter.start,
               end: chapter.end,
-              transcript: chapterTranscript, // Add full transcript text for this chapter
-              isRelevant: !!matchingInfo, // Mark if this chapter is relevant to search
-              relevanceScore: matchingInfo?.score || null,
+              transcript: chapterTranscript,
+              isRelevant: false, // Will be updated after AI analysis
+              relevanceScore: null, // Will be updated after AI analysis
             };
           });
 
@@ -177,31 +176,86 @@ export class VideoService {
             title: video?.title || 'Untitled Video',
             chapters: processedChapters,
             thumbnail: video?.video_thumbnail_url || '',
-            // Add summary of most relevant chapters
-            relevantChapters: result.matchingChapters || [],
+            relevantChapters: [], // Will be populated after AI analysis
           };
         }),
       );
 
-      // Prepare data for OpenAI analysis
+      // Step 3: Run OpenAI analysis on transcript results
+      this.logger.debug(`Step 2: Running OpenAI analysis for ${results.length} results`);
       const analysisData = results.map(result => ({
         transcription_id: result.transcription_id,
         transcriptText: result.text,
         chapters: result.chapters
       }));
 
-      // Run OpenAI analysis on all results
-      this.logger.debug(`Running OpenAI analysis for ${results.length} results`);
       const analysisMap = await this.openaiService.batchAnalyzeResults(
         searchTerm,
         analysisData
       );
 
-      // Enhance results with AI analysis
+      // Step 4: Use AI analysis results to search for relevant chapters
+      this.logger.debug('Step 3: Searching for relevant chapters using AI analysis results');
+      
+      // Collect all search terms from AI analysis and transcript IDs
+      const searchTermsForChapters: string[] = [];
+      const transcriptIds: string[] = [];
+      
+      results.forEach(result => {
+        const analysis = analysisMap.get(result.transcription_id);
+        if (analysis && analysis.answersQuestion) {
+          transcriptIds.push(result.transcription_id);
+          
+          // Add best answer and relevant excerpts as search terms
+          if (analysis.bestAnswer) {
+            searchTermsForChapters.push(analysis.bestAnswer);
+          }
+          if (analysis.relevantExcerpts && analysis.relevantExcerpts.length > 0) {
+            searchTermsForChapters.push(...analysis.relevantExcerpts);
+          }
+        }
+      });
+
+      // Search chapters using AI-derived terms
+      let chapterSearchResults = new Map();
+      if (searchTermsForChapters.length > 0 && transcriptIds.length > 0) {
+        chapterSearchResults = await this.chromaService.searchChaptersForTranscripts(
+          searchTermsForChapters,
+          transcriptIds
+        );
+      }
+
+      // Step 5: Enhance results with AI analysis and chapter relevance
       const enhancedResults = results.map(result => {
         const analysis = analysisMap.get(result.transcription_id);
+        const matchingChapters = chapterSearchResults.get(result.transcription_id) || [];
+        
+        // Create a map of matching chapters by their start/end times for easy lookup
+        const matchingChapterMap = new Map();
+        matchingChapters.forEach((matchingChapter: any) => {
+          const key = `${matchingChapter.start}-${matchingChapter.end}`;
+          matchingChapterMap.set(key, {
+            score: matchingChapter.score,
+            content: matchingChapter.content,
+          });
+        });
+
+        // Update chapters with relevance information
+        const updatedChapters = result.chapters.map(chapter => {
+          const key = `${chapter.start}-${chapter.end}`;
+          const matchingInfo = matchingChapterMap.get(key);
+          
+          return {
+            ...chapter,
+            isRelevant: !!matchingInfo,
+            relevanceScore: matchingInfo?.score || null,
+          };
+        });
+
         return {
           ...result,
+          chapters: updatedChapters,
+          relevantChapters: matchingChapters,
           aiAnalysis: analysis || {
             answersQuestion: false,
             relevantExcerpts: [],
@@ -221,6 +275,8 @@ export class VideoService {
         // Then sort by confidence score
         return b.aiAnalysis.confidence - a.aiAnalysis.confidence;
       });
+
+      this.logger.debug(`Search completed: ${enhancedResults.length} results with AI-enhanced chapter relevance`);
 
       return {
         query: searchTerm,
