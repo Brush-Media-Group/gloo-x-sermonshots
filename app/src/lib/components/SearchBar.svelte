@@ -1,19 +1,25 @@
 <script lang="ts">
-  export let value = '';
   export let onSearch: (query: string) => void = () => {};
   export let placeholder = 'Ask a question about faith or search for sermon topics...';
   export let isLoading = false;
-  export let debounceMs = 500; // Configurable debounce delay
-  export let minSearchLength = 2; // Minimum characters before searching
+  export let showCurrentSearch = false; // Whether to show the current search term
+  export let currentSearchTerm = ''; // The current active search term
+  export let onClear: (() => void) | null = null; // Optional clear function
   
-  let term = value || '';
+  let term = '';
   let inputRef: HTMLInputElement;
-  let debounceTimer: NodeJS.Timeout | null = null;
 
   function handleSubmit(e: Event) {
     e.preventDefault();
     if (term.trim() && !isLoading) {
       performSearch();
+    }
+  }
+
+  function handleClear() {
+    term = '';
+    if (onClear) {
+      onClear();
     }
   }
 
@@ -24,38 +30,40 @@
   }
 
   function performSearch() {
-    if (term.trim().length >= minSearchLength) {
+    if (term.trim()) {
       onSearch(term.trim());
     }
   }
-
-
-  // Auto-search with debounce when term changes
-  let lastSearchTerm = '';
-  $: if (term !== lastSearchTerm) {
-    // Clear existing timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-      debounceTimer = null;
-    }
-    
-    // Only search if term meets minimum length requirement and is different from last search
-    /* if (term && term.trim().length >= minSearchLength && term.trim() !== lastSearchTerm.trim()) {
-      debounceTimer = setTimeout(() => {
-        if (!isLoading && term.trim() !== lastSearchTerm.trim()) {
-          lastSearchTerm = term.trim();
-          performSearch();
-        }
-      }, debounceMs);
-    } else if (!term || term.trim().length === 0) {
-      // Reset lastSearchTerm when input is empty
-      lastSearchTerm = '';
-    } */
-  }
 </script>
 
-<form on:submit={handleSubmit} class="w-full max-w-4xl mx-auto">
-  <div class="relative flex items-center bg-white rounded-full shadow-lg border border-gray-200 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 transition-all duration-200">
+<div class="w-full max-w-4xl mx-auto">
+  <!-- Current Search Display -->
+  {#if showCurrentSearch && currentSearchTerm}
+    <div class="mb-4 text-center">
+      <div class="inline-flex items-center gap-2 px-4 py-2 bg-sky-50 border border-sky-200 rounded-full text-sky-800">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <span class="text-sm font-medium">Results for:</span>
+        <span class="text-sm font-semibold">"{currentSearchTerm}"</span>
+        {#if onClear}
+          <button 
+            on:click={handleClear}
+            class="ml-2 p-1 hover:bg-sky-200 rounded-full transition-colors duration-200"
+            title="Clear search"
+            aria-label="Clear search"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        {/if}
+      </div>
+    </div>
+  {/if}
+
+  <form on:submit={handleSubmit}>
+    <div class="relative flex items-center bg-white rounded-full shadow-lg border border-gray-200 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 transition-all duration-200">
     <!-- Search Icon -->
     <div class="pl-6 pr-2">
       <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,5 +103,6 @@
         <span>Search</span>
       {/if}
     </button>
-  </div>
-</form>
+    </div>
+  </form>
+</div>

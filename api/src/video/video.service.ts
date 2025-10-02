@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { AssemblyaiService } from 'src/assemblyai/assemblyai.service';
 import { ChromaService } from 'src/chroma/chroma.service';
+import { OpenaiService } from 'src/openai/openai.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -23,6 +24,7 @@ export class VideoService {
     private configService: ConfigService,
     private assemblyaiService: AssemblyaiService,
     private chromaService: ChromaService,
+    private openaiService: OpenaiService,
     @InjectQueue('video') private videoQueue: Queue,
   ) {}
 
@@ -112,6 +114,7 @@ export class VideoService {
     this.logger.debug(`Searching for: ${searchTerm}`);
     try {
       const chromaResults = await this.chromaService.searchVector(searchTerm);
+      
       // Transform the results to match the frontend interface
       const results = await Promise.all(
         chromaResults.map(async (result: any) => {
@@ -148,29 +151,31 @@ export class VideoService {
             });
           }
 
+          const processedChapters = chapters.map((chapter, index) => {
+            const key = `${chapter.start}-${chapter.end}`;
+            const matchingInfo = matchingChapterMap.get(key);
+            const chapterTranscript = extractChapterTranscript(
+              chapter.start,
+              chapter.end,
+            );
+
+            return {
+              title: chapter.headline || `Chapter ${index + 1}`,
+              summary: chapter.summary,
+              start: chapter.start,
+              end: chapter.end,
+              transcript: chapterTranscript, // Add full transcript text for this chapter
+              isRelevant: !!matchingInfo, // Mark if this chapter is relevant to search
+              relevanceScore: matchingInfo?.score || null,
+            };
+          });
+
           return {
             transcription_id: result.transcription_id,
             videoUrl: video?.video_url || '',
             text: result.doc || '',
             title: video?.title || 'Untitled Video',
-            chapters: chapters.map((chapter, index) => {
-              const key = `${chapter.start}-${chapter.end}`;
-              const matchingInfo = matchingChapterMap.get(key);
-              const chapterTranscript = extractChapterTranscript(
-                chapter.start,
-                chapter.end,
-              );
-
-              return {
-                title: chapter.headline || `Chapter ${index + 1}`,
-                summary: chapter.summary,
-                start: chapter.start,
-                end: chapter.end,
-                transcript: chapterTranscript, // Add full transcript text for this chapter
-                isRelevant: !!matchingInfo, // Mark if this chapter is relevant to search
-                relevanceScore: matchingInfo?.score || null,
-              };
-            }),
+            chapters: processedChapters,
             thumbnail: video?.video_thumbnail_url || '',
             // Add summary of most relevant chapters
             relevantChapters: result.matchingChapters || [],
@@ -178,11 +183,51 @@ export class VideoService {
         }),
       );
 
+      // Prepare data for OpenAI analysis
+      const analysisData = results.map(result => ({
+        transcription_id: result.transcription_id,
+        transcriptText: result.text,
+        chapters: result.chapters
+      }));
+
+      // Run OpenAI analysis on all results
+      this.logger.debug(`Running OpenAI analysis for ${results.length} results`);
+      const analysisMap = await this.openaiService.batchAnalyzeResults(
+        searchTerm,
+        analysisData
+      );
+
+      // Enhance results with AI analysis
+      const enhancedResults = results.map(result => {
+        const analysis = analysisMap.get(result.transcription_id);
+        return {
+          ...result,
+          aiAnalysis: analysis || {
+            answersQuestion: false,
+            relevantExcerpts: [],
+            bestAnswer: '',
+            confidence: 0,
+            reasoning: 'Analysis not available'
+          }
+        };
+      });
+
+      // Sort results by AI confidence and relevance
+      enhancedResults.sort((a, b) => {
+        // First prioritize results that answer the question
+        if (a.aiAnalysis.answersQuestion && !b.aiAnalysis.answersQuestion) return -1;
+        if (!a.aiAnalysis.answersQuestion && b.aiAnalysis.answersQuestion) return 1;
+        
+        // Then sort by confidence score
+        return b.aiAnalysis.confidence - a.aiAnalysis.confidence;
+      });
+
       return {
         query: searchTerm,
-        totalResults: results.length,
-        results,
+        totalResults: enhancedResults.length,
+        results: enhancedResults,
         relatedContent: [], // Can be enhanced later
+        aiEnhanced: true, // Flag to indicate AI analysis was performed
       };
     } catch (error) {
       this.logger.error(`Error searching for vector: ${error}`);
