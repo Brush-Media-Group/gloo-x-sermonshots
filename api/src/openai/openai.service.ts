@@ -69,7 +69,35 @@ export class OpenaiService {
         throw new Error('No response from OpenAI');
       }
 
-      return this.parseAnalysisResponse(content);
+      const result = this.parseAnalysisResponse(content);
+
+      if (result.answersQuestion) {
+        try {
+          const reevaluation = await this.reevaluateResult(
+            query,
+            transcriptText,
+            content,
+          );
+          if (reevaluation) {
+            this.logger.debug(`Reevaluation result: ${reevaluation}`);
+
+            const panelJsonMatch = reevaluation.match(/\{[\s\S]*\}/);
+            if (panelJsonMatch) {
+              const panelParsed = JSON.parse(panelJsonMatch[0]) as {
+                confidence: number;
+                justification?: string;
+              };
+              if (typeof panelParsed.confidence === 'number') {
+                result.confidence = panelParsed.confidence;
+              }
+            }
+          }
+        } catch (error) {
+          this.logger.error(`Reevaluation error: ${error}`);
+        }
+      }
+
+      return result;
     } catch (error) {
       this.logger.error(`Error analyzing search result: ${error}`);
       return {
@@ -79,6 +107,64 @@ export class OpenaiService {
         confidence: 0,
         reasoning: `Analysis failed: ${error.message}`,
       };
+    }
+  }
+
+  async reevaluateResult(
+    query: string,
+    transcript: string,
+    analysis: string,
+  ): Promise<string> {
+    if (!this.openai) {
+      return 'OpenAI service not available';
+    }
+
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: `
+              You are now a panel of three expert biblical scholars. Review the following analysis and confidence score based on how the transcript answers the query.
+              Discuss and critique the reasoning and confidence score, then provide a revised confidence score (0-100) that reflects a consensus, being even more conservative and self-critical.
+              Only update the 'confidence' field, and justify the revision.
+
+              Use the following scale when assigning confidence:
+              - 85-100: Direct, clear answer with strong evidence (e.g., explicit quotes).
+              - 50-84: Partial or inferred answer, some uncertainty.
+              - 0-49: Unclear, ambiguous, or not addressed.
+              
+              Query:
+              ${query}
+
+              Transcript:
+              ${transcript}
+
+              Analysis:
+              ${analysis}
+
+              Respond in this JSON format:
+              {
+                "confidence": number,
+                "justification": "Panel's reasoning for revised score."
+              }
+            `,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return content;
+    } catch (error) {
+      this.logger.error(`Error during panel review: ${error}`);
+      return 'Failed to generate panel review';
     }
   }
 
@@ -107,16 +193,8 @@ Please analyze this sermon transcript and determine:
 1. Does this sermon content answer or address the question/query?
 2. What are the most relevant excerpts (2-3 short passages) that directly relate to the question?
 3. What is the best single answer or insight from this sermon that addresses the question?
-4. How confident are you that this sermon addresses the question?
-    When assigning a confidence score, be conservative and self-critical. Only assign high confidence if the answer is direct and strongly supported by the transcript. If there is any doubt, ambiguity, or lack of direct evidence, lower your confidence score. Use the following scale:
-    - 85-100: Direct, clear answer with strong evidence (e.g., explicit quotes).
-    - 50-84: Partial or inferred answer, some uncertainty.
-    - 0-49: Unclear, ambiguous, or not addressed.
-    Example: If the answer is only partially supported or inferred, do NOT assign a score above 84.
-    Penalize yourself for overconfidence. If there is any doubt, ambiguity, or lack of direct evidence, lower your confidence score.
+4. How confident are you that this sermon addresses the question? (0-100 scale)
 5. Provide reasoning for your assessment.
-
-Calibration: Imagine you are being graded for accuracy. Only assign high confidence if you are certain and can cite direct evidence.
 
 Respond in the following JSON format:
 {
