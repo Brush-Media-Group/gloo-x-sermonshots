@@ -209,6 +209,9 @@
               <li>• Keywords from sermon titles</li>
             </ul>
           </div>
+          <p class="text-gray-500 mt-4">
+            If you want to talk directly to church staff or have more personal questions, please reach out to your church—they would love to connect and support you.
+          </p>
         </div>
       </div>
     {:else if hasSearched && searchResults.length > 0}
