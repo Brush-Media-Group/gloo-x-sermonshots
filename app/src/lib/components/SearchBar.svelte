@@ -47,7 +47,7 @@
 
 <div class="w-full max-w-4xl mx-auto">
   <!-- Current Search Display -->
-  {#if showCurrentSearch && currentSearchTerm}
+  <!-- {#if showCurrentSearch && currentSearchTerm}
     <div class="mb-4 text-center">
       <div class="inline-flex items-center gap-2 px-4 py-2 bg-sky-50 border border-sky-200 rounded-full text-sky-800">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +69,7 @@
         {/if}
       </div>
     </div>
-  {/if}
+  {/if} -->
 
   <form on:submit={handleSubmit}>
     <div class="relative flex items-center bg-white rounded-full shadow-lg border border-gray-200 focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 transition-all duration-200">

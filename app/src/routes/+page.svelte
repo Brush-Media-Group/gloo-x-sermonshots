@@ -139,13 +139,13 @@
 <div class="min-h-screen bg-gray-50">
   <!-- Header with Search -->
   <header class="bg-white top-0 z-30 border-b border-gray-100 sticky transition-all duration-300">
-    <div class="max-w-4xl mx-auto px-4 transition-all duration-300" style="padding-top: {shrinkHeader ? '1rem' : '3rem'}; padding-bottom: {shrinkHeader ? '1rem' : '3rem'};">
-      <div class="text-center transition-all duration-300" style="margin-bottom: {shrinkHeader ? '0.5rem' : '2rem'};">
-        <h1 class="font-bold text-sky-500 transition-all duration-300" style="font-size: {shrinkHeader ? '2rem' : '3rem'}; margin-bottom: {shrinkHeader ? '0.25rem' : '1rem'};">
-          Sermon Search
-        </h1>
-      {#if !hasSearched}
-        <p class="text-gray-600 max-w-2xl mx-auto leading-relaxed transition-all duration-300" style="font-size: {shrinkHeader ? '1rem' : '1.25rem'}; margin-bottom: {shrinkHeader ? '0.25rem' : '1rem'};">
+    <div class="max-w-4xl mx-auto px-4 transition-all duration-300 {shrinkHeader ? 'pt-4 pb-4' : 'pt-12 pb-12'}">
+          <div class="text-center transition-all duration-300 {shrinkHeader ? 'mb-2' : 'mb-8'}">
+            <h1 class="font-bold text-sky-500 transition-all duration-300 {shrinkHeader ? 'text-2xl mb-1' : 'text-4xl mb-4'}">
+              Sermon Search
+            </h1>
+          {#if !hasSearched}
+            <p class="text-gray-600 max-w-2xl mx-auto leading-relaxed transition-all duration-300 {shrinkHeader ? 'text-base mb-1' : 'text-xl mb-4'}">
           Ask questions about faith and discover sermons that provide biblical answers. Search through chapters to find exactly what you're looking for.
         </p>
         {/if}

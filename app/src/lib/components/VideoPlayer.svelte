@@ -13,6 +13,7 @@
   export let title: string = '';
   export let showMoreButton: boolean = true;
   export let chapters: Array<{ title: string; start: number; end: number, isRelevant: boolean, relevanceScore: number | null }> = [];
+  export let confidence: number = 0;
 
   const dispatch = createEventDispatcher();
   let videoEl: HTMLVideoElement;
@@ -99,9 +100,9 @@
 
 <div class="space-y-4">
   <!-- Title above video -->
-  <h3 class="text-xl font-bold text-gray-900 text-center">
+  <!-- <h3 class="text-xl font-bold text-gray-900 text-center">
     {title}
-  </h3>
+  </h3> -->
   
   <div class="relative w-full">
     <div class="relative w-full">
@@ -109,7 +110,7 @@
       {#if chapters.length > 0}
   <div class="absolute top-3 left-3 z-20 transition-opacity duration-1000" style="opacity: {isPlaying ? 0 : 1}; pointer-events: auto; width: 40%; max-width: 40vw;">
           <div class="mb-2 inline-flex items-center px-3 py-1 text-base font-bold rounded-full" style="background: #ff9900; color: white; box-shadow: 0 2px 8px #ff9900aa;">
-            90%
+            {confidence}%
             <span class="relative ml-2 info-tooltip-parent">
               <svg class="w-4 h-4 text-white cursor-pointer" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
@@ -117,7 +118,7 @@
                 <line x1="12" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="2"/>
               </svg>
               <span class="tooltip absolute left-1/2 -translate-x-1/2 top-full mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 pointer-events-none whitespace-nowrap z-30 transition-opacity duration-150 shadow-lg">
-                Confidence is based on AI analysis of chapter relevance.
+                Confidence is based on AI analysis of sermon relevance.
               </span>
             </span>
           </div>
@@ -165,7 +166,7 @@
     </div>
   </div>
   
-  {#if showMoreButton}
+  <!-- {#if showMoreButton}
     <div class="text-center">
       <button 
         class="px-6 py-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 transition-colors duration-200 font-medium"
@@ -174,5 +175,5 @@
         More from this sermon
       </button>
     </div>
-  {/if}
+  {/if} -->
 </div>

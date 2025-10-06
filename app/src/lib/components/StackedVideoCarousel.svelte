@@ -62,11 +62,11 @@
 
 <div class="max-w-7xl mx-auto">
   <!-- Sermon Title -->
-  {#if currentSermon}
+  <!-- {#if currentSermon}
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
       {currentSermon.title || 'Untitled Sermon'}
     </h2>
-  {/if}
+  {/if} -->
   
   <!-- AI Analysis (if available) -->
   {#if currentSermon?.aiAnalysis}
@@ -103,8 +103,14 @@
       </div> -->
 
       <!-- Main active video and chapters list side by side -->
-      <div class="relative z-10 mx-4 flex flex-row gap-4 items-start">
-        {#if currentSermon}
+      {#if currentSermon}
+        <div class="mb-2 flex flex-row items-center justify-center">
+          <span class="text-8xl font-extrabold text-gray-200 select-none leading-none mr-4" style="font-family: serif;">“</span>
+          <h3 class="text-xl font-bold text-orange-500 text-center mb-6 uppercase">
+            {currentSermon.aiAnalysis?.bestAnswer}
+          </h3>
+        </div>
+        <div class="relative z-10 mx-4 flex flex-row gap-4 items-start">
           <div class="flex-1 min-w-0">
             <VideoPlayer 
               bind:this={videoPlayerRef}
@@ -112,6 +118,7 @@
               thumbnail={currentSermon.thumbnail}
               title={currentSermon.title || 'Untitled Sermon'}
               chapters={currentSermon.chapters}
+              confidence={currentSermon.aiAnalysis?.confidence || 0}
               on:more={handleMoreClick}
               on:chapterChange={handleChapterChange}
             />
@@ -123,8 +130,8 @@
               on:chapterClick={handleChapterClick}
             />
           </div>
-        {/if}
-      </div>
+        </div>
+      {/if}
     </div>
   </div>
 </div>

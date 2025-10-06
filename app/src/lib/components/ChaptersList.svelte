@@ -75,6 +75,13 @@
         Show all {chapters.length} chapters
       </label>
       {/if}
+      <!-- info tool tip -->
+      <div class="relative group">
+        <i class="fa fa-info-circle text-gray-400 cursor-pointer" aria-hidden="true"></i>
+        <div class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg p-2 text-xs text-gray-600 hidden group-hover:block z-50">
+          <p>Click on a chapter to jump to it in the sermon. Highlighted chapters are more relevant to your search.</p>
+        </div>
+      </div>
     </div>
   </div>
   
