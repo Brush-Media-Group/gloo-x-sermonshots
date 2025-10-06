@@ -36,7 +36,7 @@
   function handleChapterClick(event: CustomEvent) {
     const chapter = event.detail;
     if (videoPlayerRef) {
-      videoPlayerRef.seekTo(chapter.start);
+      videoPlayerRef.seekTo(chapter.start, true);
     }
     dispatch('chapterClick', chapter);
   }
@@ -60,7 +60,7 @@
   }
 </script>
 
-<div class="max-w-6xl mx-auto">
+<div class="max-w-7xl mx-auto">
   <!-- Sermon Title -->
   {#if currentSermon}
     <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
@@ -70,15 +70,14 @@
   
   <!-- AI Analysis (if available) -->
   {#if currentSermon?.aiAnalysis}
-    <AIAnalysisCard analysis={currentSermon.aiAnalysis} />
+    <!-- <AIAnalysisCard analysis={currentSermon.aiAnalysis} /> -->
   {/if}
   
   <!-- Main Result Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl shadow-lg p-8">
-    <!-- Left: Layered Video Player -->
+  <div class="bg-white rounded-2xl shadow-lg p-8">
     <div class="relative">
       <!-- Left placeholder video -->
-      <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
+      <!-- <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
         {#if prevSermon}
           <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md flex items-center justify-center">
             <div class="text-gray-600 text-xs font-medium px-2 py-1 bg-white/80 rounded text-center">
@@ -88,10 +87,10 @@
         {:else}
           <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md"></div>
         {/if}
-      </div>
+      </div> -->
 
       <!-- Right placeholder video -->
-      <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
+      <!-- <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
         {#if nextSermon}
           <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md flex items-center justify-center">
             <div class="text-gray-600 text-xs font-medium px-2 py-1 bg-white/80 rounded text-center">
@@ -101,31 +100,31 @@
         {:else}
           <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md"></div>
         {/if}
-      </div>
+      </div> -->
 
-      <!-- Main active video (overlaid on top) -->
-      <div class="relative z-10 mx-8">
+      <!-- Main active video and chapters list side by side -->
+      <div class="relative z-10 mx-4 flex flex-row gap-4 items-start">
         {#if currentSermon}
-          <VideoPlayer 
-            bind:this={videoPlayerRef}
-            videoUrl={currentSermon.videoUrl}
-            thumbnail={currentSermon.thumbnail}
-            title={currentSermon.title || 'Untitled Sermon'}
-            chapters={currentSermon.chapters}
-            on:more={handleMoreClick}
-            on:chapterChange={handleChapterChange}
-          />
+          <div class="flex-1 min-w-0">
+            <VideoPlayer 
+              bind:this={videoPlayerRef}
+              videoUrl={currentSermon.videoUrl}
+              thumbnail={currentSermon.thumbnail}
+              title={currentSermon.title || 'Untitled Sermon'}
+              chapters={currentSermon.chapters}
+              on:more={handleMoreClick}
+              on:chapterChange={handleChapterChange}
+            />
+          </div>
+          <div class="w-100 max-w-full">
+            <ChaptersList 
+              chapters={currentSermon.chapters}
+              {activeChapter}
+              on:chapterClick={handleChapterClick}
+            />
+          </div>
         {/if}
       </div>
     </div>
-    
-    <!-- Right: Chapters -->
-    {#if currentSermon}
-      <ChaptersList 
-        chapters={currentSermon.chapters}
-        {activeChapter}
-        on:chapterClick={handleChapterClick}
-      />
-    {/if}
   </div>
 </div>

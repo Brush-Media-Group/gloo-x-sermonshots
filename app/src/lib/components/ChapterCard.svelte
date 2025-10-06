@@ -14,10 +14,20 @@
 
   const dispatch = createEventDispatcher();
 
+
+  let showFullSummary = false;
+
   function handleClick() {
     if (clickable) {
+      showFullSummary = !showFullSummary;
       dispatch('click', chapter);
     }
+  }
+
+  function getShortSummary(summary: string): string {
+    const words = summary.split(/\s+/);
+    if (words.length <= 15) return summary;
+    return words.slice(0, 15).join(' ') + '...';
   }
 
   function formatTime(milliseconds: number): string {
@@ -31,27 +41,33 @@
   <button 
     class="w-full p-3 rounded-lg border transition-all duration-200 text-left relative
       {isActive
-        ? 'bg-primary-50 border-primary-400 shadow-sm'
+        ?  chapter.isRelevant ? 'bg-orange-100 border-orange-300 shadow-sm' : 'bg-gray-50 border-orange-300 hover:bg-gray-100'
         : chapter.isRelevant
-        ? 'bg-secondary-50 border-secondary-300 hover:bg-secondary-100 shadow-sm'
+        ? 'bg-orange-100 border-orange-100 shadow-sm'
         : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}"
     on:click={handleClick}
   >
     <div class="flex justify-between items-start mb-2">
-      <h4 class="font-medium text-gray-900 flex-1 pr-4">
+      <h4 class="text-sm font-medium text-gray-900 flex-1">
         {chapter.title}
-        {#if chapter.isRelevant}
+        <!-- {#if chapter.isRelevant}
           <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
             {chapter.relevanceScore} %
           </span>
-        {/if}
+        {/if} -->
       </h4>
       <span class="text-xs text-gray-500 px-2 py-1 rounded">
         <i class="fa-regular fa-clock mr-1"></i>
         {formatTime(chapter.start)}
       </span>
     </div>
-    <p class="text-sm text-gray-600">{chapter.summary}</p>
+    <p class="text-sm text-gray-600">
+      {#if showFullSummary}
+        {chapter.summary}
+      {:else}
+        {getShortSummary(chapter.summary)}
+      {/if}
+    </p>
   </button>
 {:else}
   <div class="p-4 rounded-lg border border-gray-200">

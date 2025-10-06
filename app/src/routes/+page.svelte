@@ -16,6 +16,7 @@
   let hasSearched = false;
   let totalResults = 0;
   let currentResultIndex = 0;
+  let shrinkHeader = false;
 
   async function handleSearch(query: string) {
     if (!query.trim()) return;
@@ -104,6 +105,10 @@
       }
     }
   }
+  
+  function handleHeaderScroll() {
+    shrinkHeader = window.scrollY > 40;
+  }
 
   // Optional: Load some initial content or handle URL params
   onMount(() => {
@@ -116,9 +121,12 @@
 
     // Add global keyboard event listener
     document.addEventListener('keydown', handleKeydown);
-    
+    window.addEventListener('scroll', handleHeaderScroll);
+    handleHeaderScroll();
+
     return () => {
       document.removeEventListener('keydown', handleKeydown);
+      window.removeEventListener('scroll', handleHeaderScroll);
     };
   });
 </script>
@@ -130,15 +138,17 @@
 
 <div class="min-h-screen bg-gray-50">
   <!-- Header with Search -->
-  <header class="bg-white top-0 z-10 border-b border-gray-100">
-    <div class="max-w-4xl mx-auto px-4 py-12">
-      <div class="text-center mb-8">
-        <h1 class="text-5xl font-bold text-sky-500 mb-4">
+  <header class="bg-white top-0 z-30 border-b border-gray-100 sticky transition-all duration-300">
+    <div class="max-w-4xl mx-auto px-4 transition-all duration-300" style="padding-top: {shrinkHeader ? '1rem' : '3rem'}; padding-bottom: {shrinkHeader ? '1rem' : '3rem'};">
+      <div class="text-center transition-all duration-300" style="margin-bottom: {shrinkHeader ? '0.5rem' : '2rem'};">
+        <h1 class="font-bold text-sky-500 transition-all duration-300" style="font-size: {shrinkHeader ? '2rem' : '3rem'}; margin-bottom: {shrinkHeader ? '0.25rem' : '1rem'};">
           Sermon Search
         </h1>
-        <p class="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+      {#if !hasSearched}
+        <p class="text-gray-600 max-w-2xl mx-auto leading-relaxed transition-all duration-300" style="font-size: {shrinkHeader ? '1rem' : '1.25rem'}; margin-bottom: {shrinkHeader ? '0.25rem' : '1rem'};">
           Ask questions about faith and discover sermons that provide biblical answers. Search through chapters to find exactly what you're looking for.
         </p>
+        {/if}
       </div>
       <SearchBar 
         onSearch={handleSearch}
@@ -148,9 +158,9 @@
         onClear={handleClearSearch}
         bind:value={searchInputValue}
       />
-      
       <!-- Search Suggestions -->
-      <div class="flex flex-wrap justify-center gap-2 mt-4">
+      {#if !hasSearched}
+      <div class="flex flex-wrap justify-center gap-2 mt-4 transition-opacity duration-300" style="opacity: {shrinkHeader ? 0 : 1}; pointer-events: {shrinkHeader ? 'none' : 'auto'}; height: {shrinkHeader ? '0px' : 'auto'}; overflow: hidden;">
         {#each ['How do I find purpose in life?', 'What does the Bible say about forgiveness?', 'How to deal with anxiety and fear?', 'Building stronger relationships', 'Understanding God\'s love'] as suggestion}
           <button 
             class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 transition-colors duration-200"
@@ -160,11 +170,12 @@
           </button>
         {/each}
       </div>
+      {/if}
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="max-w-7xl mx-auto px-4 py-8">
     {#if isLoading}
       <!-- Loading State -->
       <div class="flex flex-col justify-center items-center py-16 animate-fadeInUp">
@@ -246,7 +257,7 @@
     {:else}
       <!-- Welcome State -->
       <div class="py-16">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-7xl mx-auto">
           <!-- Features Grid -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
             <div class="bg-white p-8 rounded-2xl shadow-sm text-center">

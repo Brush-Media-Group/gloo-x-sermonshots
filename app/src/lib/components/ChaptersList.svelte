@@ -1,4 +1,5 @@
 <script lang="ts">
+  let showAllChapters = false;
   import { createEventDispatcher } from 'svelte';
   import ChapterCard from './ChapterCard.svelte';
 
@@ -66,23 +67,35 @@
 
 <div>
   <div class="flex justify-between items-center mb-4">
-    <h3 class="text-xl font-semibold text-gray-900">Sermon Chapters</h3>
-    {#if chapters.length > 0}
-      <span class="text-xs text-gray-500">{chapters.length} chapter{chapters.length !== 1 ? 's' : ''}</span>
-    {/if}
+    <!-- <h3 class="text-xl font-semibold text-gray-900">Sermon Chapters</h3> -->
+    <div class="flex items-center gap-2">
+      {#if chapters.length > 0}
+      <label class="text-xs text-gray-500 cursor-pointer flex items-center">
+        <input type="checkbox" bind:checked={showAllChapters} class="mr-1 ml-2" />
+        Show all {chapters.length} chapters
+      </label>
+      {/if}
+    </div>
   </div>
   
-  <!-- Scrollable chapters list with max height -->
-  <div class="space-y-3 max-h-96 overflow-y-auto pr-2" bind:this={scrollContainer}>
+  <!-- Vertically scrollable chapters list -->
+  <div
+    class="flex flex-col overflow-y-auto h-96 w-full"
+    style="scroll-behavior: smooth;"
+    bind:this={scrollContainer}
+  >
     {#each chapters as chapter, index}
-      {#if chapter.relevanceScore && chapter.relevanceScore > 0}
-      <div data-chapter-index={index}>
-        <ChapterCard 
-          {chapter} 
-          isActive={activeChapter === chapter.title}
-          on:click={handleChapterClick}
-        />
-      </div>
+      {#if showAllChapters || (chapter.relevanceScore && chapter.relevanceScore > 0)}
+        <div
+          data-chapter-index={index}
+          class="flex-shrink-0 w-full px-2 mb-2"
+        >
+          <ChapterCard 
+            {chapter} 
+            isActive={activeChapter === chapter.title}
+            on:click={handleChapterClick}
+          />
+        </div>
       {/if}
     {/each}
   </div>
