@@ -168,12 +168,13 @@ export class ChromaService implements OnModuleInit {
     }
   }
 
-  async searchTranscripts(searchTerm: string) {
+  async searchTranscripts(searchTerm: string, userId: string) {
     this.logger.debug(`Searching transcripts for: ${searchTerm}`);
 
     const transcriptsQuery = await this.transcripts.query({
       queryTexts: [searchTerm],
       nResults: 5,
+      where: { user_id: userId }, // Only search user_id 419
     });
 
     const results = transcriptsQuery.documents[0].map((doc, i) => {
@@ -186,6 +187,52 @@ export class ChromaService implements OnModuleInit {
         transcription_id: metadata?.transcription_id,
       };
     });
+
+    return results;
+  }
+
+  async searchTranscriptsByUserId(searchTerm: string, userId: string, nResults: number = 5) {
+    this.logger.debug(`Searching transcripts for user ${userId} with term: ${searchTerm}`);
+
+    const transcriptsQuery = await this.transcripts.query({
+      queryTexts: [searchTerm],
+      nResults: 20, // Get more results to filter by user_id
+      where: { user_id: userId },
+    });
+
+    const results = transcriptsQuery.documents[0].map((doc, i) => {
+      const metadata = transcriptsQuery?.metadatas?.[0]?.[
+        i
+      ] as unknown as TranscriptMetadata;
+      
+      return {
+        doc,
+        transcription_id: metadata?.transcription_id,
+      };
+    }).slice(0, nResults); // Limit to requested number of results
+
+    return results;
+  }
+
+  async searchTranscriptsExcludingUserId(searchTerm: string, excludeUserId: string, nResults: number = 5) {
+    this.logger.debug(`Searching transcripts excluding user ${excludeUserId} with term: ${searchTerm}`);
+
+    const transcriptsQuery = await this.transcripts.query({
+      queryTexts: [searchTerm],
+      nResults: 10, // Get more results to filter out excluded user_id
+      where: { user_id: { $ne: excludeUserId } }, // Exclude specific user_id
+    });
+
+    const results = transcriptsQuery.documents[0].map((doc, i) => {
+      const metadata = transcriptsQuery?.metadatas?.[0]?.[
+        i
+      ] as unknown as TranscriptMetadata;
+      
+      return {
+        doc,
+        transcription_id: metadata?.transcription_id,
+      };
+    }).slice(0, nResults); // Limit to requested number of results
 
     return results;
   }

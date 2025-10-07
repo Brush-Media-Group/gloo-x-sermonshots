@@ -113,10 +113,10 @@ export class VideoService {
   async searchVector(searchTerm: string) {
     this.logger.debug(`Searching for: ${searchTerm}`);
     try {
-      // Step 1: Search transcripts first (similarity search)
+      // Step 1: Search transcripts first (similarity search). We're hardcoding the user id for now as we have limited data sets.
       this.logger.debug('Step 1: Performing transcript similarity search');
       const transcriptResults =
-        await this.chromaService.searchTranscripts(searchTerm);
+        await this.chromaService.searchTranscripts(searchTerm, '419');
 
       if (transcriptResults.length === 0) {
         return {
@@ -295,24 +295,51 @@ export class VideoService {
         return b.aiAnalysis.confidence - a.aiAnalysis.confidence;
       });
 
-      // Split results: top 3 as main results, remaining as related content
-      const mainResults = enhancedResults.slice(0, 3);
-      const relatedContent = enhancedResults.slice(3);
-
-      this.logger.debug(
-        `Search completed: ${mainResults.length} main results, ${relatedContent.length} related content items`,
-      );
+      // Step 6: Get related content from transcripts
+      this.logger.debug('Step 4: Searching for related content');
+      const relatedContent = await this.getRelatedContent(searchTerm);
 
       return {
         query: searchTerm,
         totalResults: enhancedResults.length,
-        results: mainResults,
+        results: enhancedResults,
         relatedContent: relatedContent,
         aiEnhanced: true, // Flag to indicate AI analysis was performed
       };
     } catch (error) {
       this.logger.error(`Error searching for vector: ${error}`);
       return { error: 'Internal server error' };
+    }
+  }
+
+  async getRelatedContent(searchTerm: string) {
+    try {
+      // Search transcripts excluding user_id "419". We're hardcoding this for now as we have limited data sets.
+      const relatedTranscriptResults = await this.chromaService.searchTranscriptsExcludingUserId(
+        searchTerm,
+        '419',
+        3 // Limit to 3 related results
+      );
+
+      // Transform results to match expected format
+      const relatedContent = await Promise.all(
+        relatedTranscriptResults.map(async (result: any) => {
+          const video = await this.getVideoByTranscriptId(result.transcription_id);
+          
+          return {
+            transcription_id: result.transcription_id,
+            videoUrl: video?.video_url || '',
+            title: video?.title || 'Untitled Video',
+            thumbnail: video?.video_thumbnail_url || '',
+            text: result.doc || '',
+          };
+        }),
+      );
+
+      return relatedContent;
+    } catch (error) {
+      this.logger.error(`Error getting related content: ${error}`);
+      return [];
     }
   }
 }
