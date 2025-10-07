@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ChromaClient, Collection } from 'chromadb';
+import { ChromaClient, Collection, Metadata } from 'chromadb';
 import { ConfigService } from '@nestjs/config';
 import type { Chapter } from 'assemblyai';
 import { OpenAIEmbeddingFunction } from '@chroma-core/openai';
@@ -103,16 +103,21 @@ export class ChromaService implements OnModuleInit {
 
     if (chunks.length === 1) {
       // Single chunk, use original ID
+      const metadata: Metadata = {
+        transcription_id: transcriptId,
+        user_id: userId,
+      };
       await this.transcripts.add({
         ids: [transcriptId],
         documents: [chunks[0]],
-        metadatas: [{ transcription_id: transcriptId, user_id: userId }],
+        metadatas: [metadata],
       });
     } else {
       // Multiple chunks, add chunk index to ID
       const ids = chunks.map((_, i) => `${transcriptId}-chunk-${i}`);
       const metadatas = chunks.map((_, i) => ({
         transcription_id: transcriptId,
+        user_id: userId,
         chunk_index: i,
       }));
 
