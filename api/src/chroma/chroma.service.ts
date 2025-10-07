@@ -169,12 +169,12 @@ export class ChromaService implements OnModuleInit {
   }
 
   async searchTranscripts(searchTerm: string, userId: string) {
-    this.logger.debug(`Searching transcripts for: ${searchTerm}`);
+    this.logger.debug(`Searching transcripts for: ${searchTerm}, user_id: ${userId}`);
 
     const transcriptsQuery = await this.transcripts.query({
       queryTexts: [searchTerm],
       nResults: 3,
-      where: { user_id: userId }, // Only search user_id 419
+      // where: { user_id: userId }, // Only search user_id 419
     });
 
     const results = transcriptsQuery.documents[0].map((doc, i) => {
