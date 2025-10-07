@@ -321,6 +321,8 @@ export class VideoService {
         3 // Limit to 3 related results
       );
 
+      this.logger.debug(`Related transcript results: ${JSON.stringify(relatedTranscriptResults)}`);
+
       // Transform results to match expected format
       const relatedContent = await Promise.all(
         relatedTranscriptResults.map(async (result: any) => {

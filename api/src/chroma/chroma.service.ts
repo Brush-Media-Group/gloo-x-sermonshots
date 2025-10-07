@@ -231,6 +231,7 @@ export class ChromaService implements OnModuleInit {
       return {
         doc,
         transcription_id: metadata?.transcription_id,
+        user_id: metadata?.user_id,
       };
     }).slice(0, nResults); // Limit to requested number of results
 
