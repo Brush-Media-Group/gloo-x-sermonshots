@@ -173,7 +173,7 @@ export class ChromaService implements OnModuleInit {
 
     const transcriptsQuery = await this.transcripts.query({
       queryTexts: [searchTerm],
-      nResults: 5,
+      nResults: 3,
       where: { user_id: userId }, // Only search user_id 419
     });
 
@@ -219,7 +219,7 @@ export class ChromaService implements OnModuleInit {
 
     const transcriptsQuery = await this.transcripts.query({
       queryTexts: [searchTerm],
-      nResults: 10, // Get more results to filter out excluded user_id
+      nResults: 3, // Get more results to filter out excluded user_id
       where: { user_id: { $ne: excludeUserId } }, // Exclude specific user_id
     });
 
