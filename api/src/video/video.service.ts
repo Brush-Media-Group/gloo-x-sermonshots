@@ -116,7 +116,7 @@ export class VideoService {
       // Step 1: Search transcripts first (similarity search). We're hardcoding the user id for now as we have limited data sets.
       this.logger.debug('Step 1: Performing transcript similarity search');
       const transcriptResults =
-        await this.chromaService.searchTranscripts(searchTerm, '419');
+        await this.chromaService.searchTranscripts(searchTerm, '419', 3);
 
       if (transcriptResults.length === 0) {
         return {
@@ -320,8 +320,6 @@ export class VideoService {
         '419',
         3 // Limit to 3 related results
       );
-
-      this.logger.debug(`Related transcript results: ${JSON.stringify(relatedTranscriptResults)}`);
 
       // Transform results to match expected format
       const relatedContent = await Promise.all(
