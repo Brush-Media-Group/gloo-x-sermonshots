@@ -119,7 +119,7 @@
               title={currentSermon.title || 'Untitled Sermon'}
               chapters={currentSermon.chapters}
               confidence={currentSermon.aiAnalysis?.confidence || 0}
-              bestAnswer={currentSermon.aiAnalysis?.bestAnswer || ''}
+              reasoning={currentSermon.aiAnalysis?.reasoning || ''}
               on:more={handleMoreClick}
               on:chapterChange={handleChapterChange}
             />

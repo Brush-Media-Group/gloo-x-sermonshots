@@ -14,7 +14,7 @@
   export let showMoreButton: boolean = true;
   export let chapters: Array<{ title: string; start: number; end: number, isRelevant: boolean, relevanceScore: number | null }> = [];
   export let confidence: number = 0;
-  export let bestAnswer: string = '';
+  export let reasoning: string = '';
 
   const dispatch = createEventDispatcher();
   let videoEl: HTMLVideoElement;
@@ -166,9 +166,9 @@
   </div>
 
   <!-- display best answer below the video -->
-  {#if bestAnswer}
+  {#if reasoning}
     <div class="mt-4 p-4 bg-gray-100 rounded-lg">
-      <p class="text-gray-700">{bestAnswer}</p>
+      <p class="text-gray-700">{reasoning}</p>
     </div>
   {/if}
 
