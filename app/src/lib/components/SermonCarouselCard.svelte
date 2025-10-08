@@ -1,77 +1,73 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import VideoPlayer from './VideoPlayer.svelte';
-  import ChaptersList from './ChaptersList.svelte';
-  import AIAnalysisCard from './AIAnalysisCard.svelte';
-  import type { AIAnalysis } from '$lib/types';
+	import { createEventDispatcher } from 'svelte';
+	import VideoPlayer from './VideoPlayer.svelte';
+	import ChaptersList from './ChaptersList.svelte';
+	import AIAnalysisCard from './AIAnalysisCard.svelte';
+	import type { AIAnalysis } from '$lib/types';
 
-  export let sermon: {
-    transcription_id: string;
-    videoUrl: string;
-    title?: string;
-    thumbnail?: string;
-    chapters: Array<{
-      title: string;
-      summary: string;
-      start: number;
-      end: number;
-      isRelevant?: boolean;
-      relevanceScore?: number | null;
-      transcript?: string;
-    }>;
-    aiAnalysis?: AIAnalysis;
-  };
+	export let sermon: {
+		transcription_id: string;
+		videoUrl: string;
+		title?: string;
+		thumbnail?: string;
+		chapters: Array<{
+			title: string;
+			summary: string;
+			start: number;
+			end: number;
+			isRelevant?: boolean;
+			relevanceScore?: number | null;
+			transcript?: string;
+		}>;
+		aiAnalysis?: AIAnalysis;
+	};
 
-  const dispatch = createEventDispatcher();
-  let videoPlayerRef: VideoPlayer;
-  let activeChapter: string | null = null;
+	const dispatch = createEventDispatcher();
+	let videoPlayerRef: VideoPlayer;
+	let activeChapter: string | null = null;
 
-  function handleChapterClick(event: CustomEvent) {
-    const chapter = event.detail;
-    if (videoPlayerRef) {
-      videoPlayerRef.seekTo(chapter.start);
-    }
-    dispatch('chapterClick', chapter);
-  }
+	function handleChapterClick(event: CustomEvent) {
+		const chapter = event.detail;
+		if (videoPlayerRef) {
+			videoPlayerRef.seekTo(chapter.start);
+		}
+		dispatch('chapterClick', chapter);
+	}
 
-  function handleMoreClick(event: CustomEvent) {
-    dispatch('moreClick', event.detail);
-  }
+	function handleMoreClick(event: CustomEvent) {
+		dispatch('moreClick', event.detail);
+	}
 
-  function handleChapterChange(event: CustomEvent) {
-    activeChapter = event.detail.title;
-  }
+	function handleChapterChange(event: CustomEvent) {
+		activeChapter = event.detail.title;
+	}
 </script>
 
-<div class="max-w-6xl mx-auto">
-  <!-- Sermon Title -->
-  <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-    {sermon.title || 'Untitled Sermon'}
-  </h2>
-  
-  <!-- AI Analysis (if available) -->
-  {#if sermon.aiAnalysis}
-    <AIAnalysisCard analysis={sermon.aiAnalysis} />
-  {/if}
-  
-  <!-- Main Result Layout -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white rounded-2xl shadow-lg p-8">
-    <!-- Left: Video -->
-    <VideoPlayer 
-      bind:this={videoPlayerRef}
-      videoUrl={sermon.videoUrl}
-      thumbnail={sermon.thumbnail}
-      title={sermon.title || 'Untitled Sermon'}
-      chapters={sermon.chapters}
-      on:more={handleMoreClick}
-      on:chapterChange={handleChapterChange}
-    />
-    
-    <!-- Right: Chapters -->
-    <ChaptersList 
-      chapters={sermon.chapters}
-      {activeChapter}
-      on:chapterClick={handleChapterClick}
-    />
-  </div>
+<div class="mx-auto max-w-6xl">
+	<!-- Sermon Title -->
+	<h2 class="mb-6 text-center text-2xl font-bold text-gray-900">
+		{sermon.title || 'Untitled Sermon'}
+	</h2>
+
+	<!-- AI Analysis (if available) -->
+	{#if sermon.aiAnalysis}
+		<AIAnalysisCard analysis={sermon.aiAnalysis} />
+	{/if}
+
+	<!-- Main Result Layout -->
+	<div class="grid grid-cols-1 gap-8 rounded-2xl bg-white p-8 shadow-lg lg:grid-cols-2">
+		<!-- Left: Video -->
+		<VideoPlayer
+			bind:this={videoPlayerRef}
+			videoUrl={sermon.videoUrl}
+			thumbnail={sermon.thumbnail}
+			title={sermon.title || 'Untitled Sermon'}
+			chapters={sermon.chapters}
+			on:more={handleMoreClick}
+			on:chapterChange={handleChapterChange}
+		/>
+
+		<!-- Right: Chapters -->
+		<ChaptersList chapters={sermon.chapters} {activeChapter} on:chapterClick={handleChapterClick} />
+	</div>
 </div>

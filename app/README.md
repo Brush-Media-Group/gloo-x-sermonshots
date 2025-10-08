@@ -17,23 +17,26 @@ A modern, responsive web application built with SvelteKit for searching and disc
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (recommended) or npm
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd gloo-x-sermonshots/app
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
 
 3. **Start the development server**
+
    ```bash
    pnpm dev
    ```
@@ -76,7 +79,7 @@ The application uses a flexible API structure defined in `src/lib/api.ts`:
 const API_BASE_URL = 'http://localhost:3001/api';
 
 // Main search function
-export async function searchVideos(query: string): Promise<SearchResponse>
+export async function searchVideos(query: string): Promise<SearchResponse>;
 ```
 
 Currently includes mock data for development. Replace with your actual API endpoints.
@@ -84,6 +87,7 @@ Currently includes mock data for development. Replace with your actual API endpo
 ## 🎨 Styling
 
 Built with **Tailwind CSS** featuring:
+
 - Custom gradient backgrounds
 - Smooth animations and transitions
 - Responsive grid layouts
@@ -116,23 +120,25 @@ Customize styling in `tailwind.config.js`:
 
 ```javascript
 export default {
-  content: ['./src/**/*.{html,js,svelte,ts}'],
-  theme: {
-    extend: {
-      // Add custom colors, fonts, etc.
-    }
-  }
-}
+	content: ['./src/**/*.{html,js,svelte,ts}'],
+	theme: {
+		extend: {
+			// Add custom colors, fonts, etc.
+		}
+	}
+};
 ```
 
 ## 📦 Building for Production
 
 1. **Create production build**
+
    ```bash
    pnpm build
    ```
 
 2. **Preview production build**
+
    ```bash
    pnpm preview
    ```
@@ -143,12 +149,14 @@ export default {
 ## 🚀 Deployment Options
 
 ### Node.js Server
+
 ```bash
 pnpm build
 node build/index.js
 ```
 
 ### Static Site (with adapter-static)
+
 ```bash
 # Install static adapter
 pnpm add -D @sveltejs/adapter-static
@@ -159,6 +167,7 @@ pnpm build
 ```
 
 ### Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -173,6 +182,7 @@ CMD ["node", "build"]
 ## 🧪 Testing
 
 ### Run Tests
+
 ```bash
 # Unit tests
 pnpm test
@@ -182,6 +192,7 @@ pnpm test:e2e
 ```
 
 ### Linting
+
 ```bash
 # ESLint
 pnpm lint
@@ -225,19 +236,19 @@ Response: {
 
 ```typescript
 interface VideoResult {
-  transcription_id: string;
-  videoUrl: string;
-  text: string;
-  chapters: Chapter[];
-  title?: string;
-  thumbnail?: string;
+	transcription_id: string;
+	videoUrl: string;
+	text: string;
+	chapters: Chapter[];
+	title?: string;
+	thumbnail?: string;
 }
 
 interface Chapter {
-  title: string;
-  summary: string;
-  start: number;  // seconds
-  end: number;    // seconds
+	title: string;
+	summary: string;
+	start: number; // seconds
+	end: number; // seconds
 }
 ```
 
@@ -246,12 +257,14 @@ interface Chapter {
 ### Common Issues
 
 1. **Port already in use**
+
    ```bash
    # Kill process on port 5173
    lsof -ti:5173 | xargs kill -9
    ```
 
 2. **Dependencies issues**
+
    ```bash
    # Clear node_modules and reinstall
    rm -rf node_modules pnpm-lock.yaml

@@ -115,8 +115,11 @@ export class VideoService {
     try {
       // Step 1: Search transcripts first (similarity search). We're hardcoding the user id for now as we have limited data sets.
       this.logger.debug('Step 1: Performing transcript similarity search');
-      const transcriptResults =
-        await this.chromaService.searchTranscripts(searchTerm, '419', 3);
+      const transcriptResults = await this.chromaService.searchTranscripts(
+        searchTerm,
+        '419',
+        3,
+      );
 
       if (transcriptResults.length === 0) {
         return {
@@ -315,17 +318,20 @@ export class VideoService {
   async getRelatedContent(searchTerm: string) {
     try {
       // Search transcripts excluding user_id "419". We're hardcoding this for now as we have limited data sets.
-      const relatedTranscriptResults = await this.chromaService.searchTranscriptsExcludingUserId(
-        searchTerm,
-        '419',
-        3 // Limit to 3 related results
-      );
+      const relatedTranscriptResults =
+        await this.chromaService.searchTranscriptsExcludingUserId(
+          searchTerm,
+          '419',
+          3, // Limit to 3 related results
+        );
 
       // Transform results to match expected format
       const relatedContent = await Promise.all(
         relatedTranscriptResults.map(async (result: any) => {
-          const video = await this.getVideoByTranscriptId(result.transcription_id);
-          
+          const video = await this.getVideoByTranscriptId(
+            result.transcription_id,
+          );
+
           return {
             transcription_id: result.transcription_id,
             videoUrl: video?.video_url || '',

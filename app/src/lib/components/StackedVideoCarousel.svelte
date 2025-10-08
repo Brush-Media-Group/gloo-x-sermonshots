@@ -1,138 +1,105 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
-  import VideoPlayer from './VideoPlayer.svelte';
-  import ChaptersList from './ChaptersList.svelte';
-  import AIAnalysisCard from './AIAnalysisCard.svelte';
-  import { openModal } from '$lib/stores/modalStore';
-  import type { AIAnalysis } from '$lib/types';
+	import { createEventDispatcher } from 'svelte';
+	import VideoPlayer from './VideoPlayer.svelte';
+	import ChaptersList from './ChaptersList.svelte';
+	import AIAnalysisCard from './AIAnalysisCard.svelte';
+	import { openModal } from '$lib/stores/modalStore';
+	import type { AIAnalysis } from '$lib/types';
 
-  export let sermons: Array<{
-    transcription_id: string;
-    videoUrl: string;
-    text: string;
-    title?: string;
-    thumbnail?: string;
-    chapters: Array<{
-      title: string;
-      summary: string;
-      start: number;
-      end: number;
-      isRelevant?: boolean;
-      relevanceScore?: number | null;
-      transcript?: string;
-    }>;
-    aiAnalysis?: AIAnalysis;
-  }> = [];
-  export let currentIndex: number = 0;
+	export let sermons: Array<{
+		transcription_id: string;
+		videoUrl: string;
+		text: string;
+		title?: string;
+		thumbnail?: string;
+		chapters: Array<{
+			title: string;
+			summary: string;
+			start: number;
+			end: number;
+			isRelevant?: boolean;
+			relevanceScore?: number | null;
+			transcript?: string;
+		}>;
+		aiAnalysis?: AIAnalysis;
+	}> = [];
+	export let currentIndex: number = 0;
 
-  const dispatch = createEventDispatcher();
-  let videoPlayerRef: VideoPlayer;
-  let activeChapter: string | null = null;
+	const dispatch = createEventDispatcher();
+	let videoPlayerRef: VideoPlayer;
+	let activeChapter: string | null = null;
 
-  $: currentSermon = sermons[currentIndex];
-  $: nextSermon = sermons[currentIndex + 1];
-  $: prevSermon = sermons[currentIndex - 1];
+	$: currentSermon = sermons[currentIndex];
+	$: nextSermon = sermons[currentIndex + 1];
+	$: prevSermon = sermons[currentIndex - 1];
 
-  function handleChapterClick(event: CustomEvent) {
-    const chapter = event.detail;
-    if (videoPlayerRef) {
-      videoPlayerRef.seekTo(chapter.start, true);
-    }
-    dispatch('chapterClick', chapter);
-  }
+	function handleChapterClick(event: CustomEvent) {
+		const chapter = event.detail;
+		if (videoPlayerRef) {
+			videoPlayerRef.seekTo(chapter.start, true);
+		}
+		dispatch('chapterClick', chapter);
+	}
 
-  function handleMoreClick(event: CustomEvent) {
-    if (currentSermon) {
-      openModal({
-        transcription_id: currentSermon.transcription_id,
-        videoUrl: currentSermon.videoUrl,
-        text: currentSermon.text,
-        title: currentSermon.title || 'Untitled Sermon',
-        chapters: currentSermon.chapters,
-        thumbnail: currentSermon.thumbnail
-      });
-    }
-    dispatch('moreClick', event.detail);
-  }
+	function handleMoreClick(event: CustomEvent) {
+		if (currentSermon) {
+			openModal({
+				transcription_id: currentSermon.transcription_id,
+				videoUrl: currentSermon.videoUrl,
+				text: currentSermon.text,
+				title: currentSermon.title || 'Untitled Sermon',
+				chapters: currentSermon.chapters,
+				thumbnail: currentSermon.thumbnail
+			});
+		}
+		dispatch('moreClick', event.detail);
+	}
 
-  function handleChapterChange(event: CustomEvent) {
-    activeChapter = event.detail.title;
-  }
+	function handleChapterChange(event: CustomEvent) {
+		activeChapter = event.detail.title;
+	}
 </script>
 
-<div class="max-w-7xl mx-auto">
-  <!-- Sermon Title -->
-  <!-- {#if currentSermon}
-    <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-      {currentSermon.title || 'Untitled Sermon'}
-    </h2>
-  {/if} -->
-  
-  <!-- AI Analysis (if available) -->
-  {#if currentSermon?.aiAnalysis}
-    <!-- <AIAnalysisCard analysis={currentSermon.aiAnalysis} /> -->
-  {/if}
-  
-  <!-- Main Result Layout -->
-  <div class="bg-white rounded-2xl shadow-lg p-8">
-    <div class="relative">
-      <!-- Left placeholder video -->
-      <!-- <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
-        {#if prevSermon}
-          <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md flex items-center justify-center">
-            <div class="text-gray-600 text-xs font-medium px-2 py-1 bg-white/80 rounded text-center">
-              {prevSermon.title || 'Previous'}
-            </div>
-          </div>
-        {:else}
-          <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md"></div>
-        {/if}
-      </div> -->
+<div class="mx-auto max-w-7xl">
 
-      <!-- Right placeholder video -->
-      <!-- <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-32 opacity-50 z-0">
-        {#if nextSermon}
-          <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md flex items-center justify-center">
-            <div class="text-gray-600 text-xs font-medium px-2 py-1 bg-white/80 rounded text-center">
-              {nextSermon.title || 'Next'}
-            </div>
-          </div>
-        {:else}
-          <div class="aspect-video bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-md"></div>
-        {/if}
-      </div> -->
+	<!-- Main Result Layout -->
+	<div class="rounded-2xl bg-white p-8 shadow-lg">
+		<div class="relative">
 
-      <!-- Main active video and chapters list side by side -->
-      {#if currentSermon}
-        <div class="mb-2 flex flex-row items-center justify-center">
-          <span class="text-8xl font-extrabold text-gray-200 select-none leading-none mr-4" style="font-family: serif;">“</span>
-          <h3 class="text-xl font-bold text-orange-500 text-center mb-6 uppercase">
-            {currentSermon.aiAnalysis?.bestAnswer}
-          </h3>
-        </div>
-        <div class="relative z-10 mx-4 flex flex-row gap-4 items-start">
-          <div class="flex-1 min-w-0">
-            <VideoPlayer 
-              bind:this={videoPlayerRef}
-              videoUrl={currentSermon.videoUrl}
-              thumbnail={currentSermon.thumbnail}
-              title={currentSermon.title || 'Untitled Sermon'}
-              chapters={currentSermon.chapters}
-              confidence={currentSermon.aiAnalysis?.confidence || 0}
-              reasoning={currentSermon.aiAnalysis?.reasoning || ''}
-              on:more={handleMoreClick}
-              on:chapterChange={handleChapterChange}
-            />
-          </div>
-          <div class="w-100 max-w-full">
-            <ChaptersList 
-              chapters={currentSermon.chapters}
-              {activeChapter}
-              on:chapterClick={handleChapterClick}
-            />
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
+			<!-- Main active video and chapters list side by side -->
+			{#if currentSermon}
+				<div class="mb-2 flex flex-row items-center justify-center">
+					<span
+						class="mr-4 text-8xl leading-none font-extrabold text-gray-200 select-none"
+						style="font-family: serif;">“</span
+					>
+					<h3 class="mb-6 text-center text-xl font-bold text-orange-500 uppercase">
+						{currentSermon.aiAnalysis?.bestAnswer}
+					</h3>
+				</div>
+				<div class="relative z-10 mx-4 flex flex-row items-start gap-4">
+					<div class="min-w-0 flex-1">
+						<VideoPlayer
+							bind:this={videoPlayerRef}
+							videoUrl={currentSermon.videoUrl}
+							thumbnail={currentSermon.thumbnail}
+							title={currentSermon.title || 'Untitled Sermon'}
+							chapters={currentSermon.chapters}
+							confidence={currentSermon.aiAnalysis?.confidence || 0}
+							reasoning={currentSermon.aiAnalysis?.reasoning || ''}
+							on:more={handleMoreClick}
+							on:chapterChange={handleChapterChange}
+						/>
+					</div>
+					<div class="w-100 max-w-full">
+						<ChaptersList
+							chapters={currentSermon.chapters}
+							{activeChapter}
+							on:chapterClick={handleChapterClick}
+						/>
+					</div>
+				</div>
+			{/if}
+		</div>
+	</div>
 </div>

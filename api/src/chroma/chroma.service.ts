@@ -59,7 +59,7 @@ export class ChromaService implements OnModuleInit {
   private extractSearchResults(
     documents: string[],
     metadatas: (Metadata | null)[] | null | undefined,
-    includeUserId = false
+    includeUserId = false,
   ): SearchResult[] {
     return documents.map((doc, i) => {
       const metadata = metadatas?.[i] as unknown as TranscriptMetadata;
@@ -67,11 +67,11 @@ export class ChromaService implements OnModuleInit {
         doc,
         transcription_id: metadata?.transcription_id,
       };
-      
+
       if (includeUserId && metadata?.user_id) {
         result.user_id = metadata.user_id;
       }
-      
+
       return result;
     });
   }
@@ -79,9 +79,13 @@ export class ChromaService implements OnModuleInit {
   /**
    * Helper method to calculate normalized relevance score
    */
-  private calculateRelevanceScore(rawScore: number, maxDistance: number): number {
+  private calculateRelevanceScore(
+    rawScore: number,
+    maxDistance: number,
+  ): number {
     return Math.round(
-      (1 - rawScore / maxDistance) * SEARCH_CONSTANTS.MAX_RELEVANCE_SCORE + SEARCH_CONSTANTS.MIN_RELEVANCE_SCORE
+      (1 - rawScore / maxDistance) * SEARCH_CONSTANTS.MAX_RELEVANCE_SCORE +
+        SEARCH_CONSTANTS.MIN_RELEVANCE_SCORE,
     );
   }
 
@@ -105,9 +109,12 @@ export class ChromaService implements OnModuleInit {
     documents: string[],
     metadatas: (Metadata | null)[] | null | undefined,
     distances: (number | null)[] | null | undefined,
-    includeUserId = false
+    includeUserId = false,
   ): SearchResult[] {
-    const resultMap = new Map<string, { result: SearchResult; distance: number }>();
+    const resultMap = new Map<
+      string,
+      { result: SearchResult; distance: number }
+    >();
 
     documents.forEach((doc, i) => {
       const metadata = metadatas?.[i] as unknown as TranscriptMetadata;
@@ -135,10 +142,13 @@ export class ChromaService implements OnModuleInit {
     // Extract just the results, sorted by distance (best first)
     return Array.from(resultMap.values())
       .sort((a, b) => a.distance - b.distance)
-      .map(item => item.result);
+      .map((item) => item.result);
   }
 
-  private chunkText(text: string, maxTokens: number = SEARCH_CONSTANTS.DEFAULT_TRANSCRIPT_TOKENS): string[] {
+  private chunkText(
+    text: string,
+    maxTokens: number = SEARCH_CONSTANTS.DEFAULT_TRANSCRIPT_TOKENS,
+  ): string[] {
     // Rough estimation: 1 token ≈ 4 characters for English text
     const maxChars = maxTokens * SEARCH_CONSTANTS.TOKENS_TO_CHARS_RATIO;
 
@@ -165,12 +175,18 @@ export class ChromaService implements OnModuleInit {
           questionEnd,
         );
 
-        if (bestSentenceEnd > currentIndex + maxChars * SEARCH_CONSTANTS.MIN_CHUNK_RATIO) {
+        if (
+          bestSentenceEnd >
+          currentIndex + maxChars * SEARCH_CONSTANTS.MIN_CHUNK_RATIO
+        ) {
           endIndex = bestSentenceEnd + 1;
         } else {
           // Fall back to word boundary
           const wordEnd = text.lastIndexOf(' ', endIndex);
-          if (wordEnd > currentIndex + maxChars * SEARCH_CONSTANTS.MIN_CHUNK_RATIO) {
+          if (
+            wordEnd >
+            currentIndex + maxChars * SEARCH_CONSTANTS.MIN_CHUNK_RATIO
+          ) {
             endIndex = wordEnd;
           }
         }
@@ -251,7 +267,10 @@ export class ChromaService implements OnModuleInit {
       const chapterText = `${chapter.headline}\n${chapter.summary}\n${chapter.gist}`;
 
       // Check if chapter content is too long and chunk if necessary
-      const chunks = this.chunkText(chapterText, SEARCH_CONSTANTS.DEFAULT_CHAPTER_TOKENS);
+      const chunks = this.chunkText(
+        chapterText,
+        SEARCH_CONSTANTS.DEFAULT_CHAPTER_TOKENS,
+      );
 
       if (chunks.length === 1) {
         ids.push(`${transcriptId}-chapter-${i}`);
@@ -284,9 +303,15 @@ export class ChromaService implements OnModuleInit {
     }
   }
 
-  async searchTranscripts(searchTerm: string, userId: string, nResults: number = 5): Promise<SearchResult[]> {
+  async searchTranscripts(
+    searchTerm: string,
+    userId: string,
+    nResults: number = 5,
+  ): Promise<SearchResult[]> {
     this.validateSearchParams(searchTerm, nResults);
-    this.logger.debug(`Searching transcripts for: ${searchTerm}, user_id: ${userId}`);
+    this.logger.debug(
+      `Searching transcripts for: ${searchTerm}, user_id: ${userId}`,
+    );
 
     try {
       const transcriptsQuery = await this.transcripts.query({
@@ -303,7 +328,7 @@ export class ChromaService implements OnModuleInit {
       const deduplicatedResults = this.deduplicateResults(
         transcriptsQuery.documents[0] as string[],
         transcriptsQuery.metadatas?.[0],
-        transcriptsQuery.distances?.[0]
+        transcriptsQuery.distances?.[0],
       );
 
       return deduplicatedResults.slice(0, nResults);
@@ -313,9 +338,15 @@ export class ChromaService implements OnModuleInit {
     }
   }
 
-  async searchTranscriptsByUserId(searchTerm: string, userId: string, nResults: number = 5): Promise<SearchResult[]> {
+  async searchTranscriptsByUserId(
+    searchTerm: string,
+    userId: string,
+    nResults: number = 5,
+  ): Promise<SearchResult[]> {
     this.validateSearchParams(searchTerm, nResults);
-    this.logger.debug(`Searching transcripts for user ${userId} with term: ${searchTerm}`);
+    this.logger.debug(
+      `Searching transcripts for user ${userId} with term: ${searchTerm}`,
+    );
 
     try {
       const transcriptsQuery = await this.transcripts.query({
@@ -332,7 +363,7 @@ export class ChromaService implements OnModuleInit {
       const deduplicatedResults = this.deduplicateResults(
         transcriptsQuery.documents[0] as string[],
         transcriptsQuery.metadatas?.[0],
-        transcriptsQuery.distances?.[0]
+        transcriptsQuery.distances?.[0],
       );
 
       return deduplicatedResults.slice(0, nResults);
@@ -342,9 +373,15 @@ export class ChromaService implements OnModuleInit {
     }
   }
 
-  async searchTranscriptsExcludingUserId(searchTerm: string, excludeUserId: string, nResults: number = 5): Promise<SearchResult[]> {
+  async searchTranscriptsExcludingUserId(
+    searchTerm: string,
+    excludeUserId: string,
+    nResults: number = 5,
+  ): Promise<SearchResult[]> {
     this.validateSearchParams(searchTerm, nResults);
-    this.logger.debug(`Searching transcripts excluding user ${excludeUserId} with term: ${searchTerm}`);
+    this.logger.debug(
+      `Searching transcripts excluding user ${excludeUserId} with term: ${searchTerm}`,
+    );
 
     try {
       const transcriptsQuery = await this.transcripts.query({
@@ -362,30 +399,34 @@ export class ChromaService implements OnModuleInit {
         transcriptsQuery.documents[0] as string[],
         transcriptsQuery.metadatas?.[0],
         transcriptsQuery.distances?.[0],
-        true // Include user_id in results
+        true, // Include user_id in results
       );
 
       return deduplicatedResults.slice(0, nResults);
     } catch (error) {
-      this.logger.error(`Error searching transcripts excluding user ID: ${error}`);
+      this.logger.error(
+        `Error searching transcripts excluding user ID: ${error}`,
+      );
       throw new Error('Failed to search transcripts excluding user ID');
     }
   }
 
   async searchChaptersForTranscripts(
-    searchTerms: string[], 
-    transcriptIds: string[]
+    searchTerms: string[],
+    transcriptIds: string[],
   ): Promise<Map<string, ChapterResult[]>> {
     if (!searchTerms.length || !transcriptIds.length) {
       return new Map();
     }
 
-    this.logger.debug(`Searching chapters for transcripts: ${transcriptIds.join(', ')} with terms: ${searchTerms.join(', ')}`);
+    this.logger.debug(
+      `Searching chapters for transcripts: ${transcriptIds.join(', ')} with terms: ${searchTerms.join(', ')}`,
+    );
 
     try {
       // Combine all search terms into one query for better results
       const combinedSearchTerm = searchTerms.join(' ');
-      
+
       const chaptersQuery = await this.chapters.query({
         queryTexts: [combinedSearchTerm],
         nResults: Math.min(transcriptIds.length * 10, 50), // Scale with transcript count
@@ -408,14 +449,14 @@ export class ChromaService implements OnModuleInit {
         const chapterMetadata = chaptersQuery?.metadatas?.[0]?.[
           chapterIndex
         ] as unknown as ChapterMetadata;
-        
+
         const transcription_id = chapterMetadata?.transcription_id;
-        
+
         // Only include chapters from our target transcripts
         if (transcription_id && transcriptIds.includes(transcription_id)) {
           const rawScore = chaptersQuery.distances[0][chapterIndex] || 0;
           const relevance = this.calculateRelevanceScore(rawScore, maxDistance);
-          
+
           const chapterResult: ChapterResult = {
             content: chapterDoc as string,
             start: chapterMetadata.start,
@@ -433,7 +474,10 @@ export class ChromaService implements OnModuleInit {
       // Sort chapters within each transcript by relevance score and limit to top chapters
       resultsByTranscript.forEach((chapters, transcriptId) => {
         chapters.sort((a, b) => b.score - a.score);
-        resultsByTranscript.set(transcriptId, chapters.slice(0, SEARCH_CONSTANTS.DEFAULT_CHAPTER_LIMIT));
+        resultsByTranscript.set(
+          transcriptId,
+          chapters.slice(0, SEARCH_CONSTANTS.DEFAULT_CHAPTER_LIMIT),
+        );
       });
 
       return resultsByTranscript;
@@ -468,7 +512,7 @@ export class ChromaService implements OnModuleInit {
       const deduplicatedTranscripts = this.deduplicateResults(
         transcriptsQuery.documents[0] as string[],
         transcriptsQuery.metadatas?.[0],
-        transcriptsQuery.distances?.[0]
+        transcriptsQuery.distances?.[0],
       );
 
       // Limit to top 5 unique transcripts
@@ -488,12 +532,17 @@ export class ChromaService implements OnModuleInit {
 
         // Look through chapter search results for this transcript
         chaptersQuery.documents[0].forEach((chapterDoc, chapterIndex) => {
-          const chapterMetadata = chaptersQuery?.metadatas?.[0]?.[chapterIndex] as unknown as ChapterMetadata;
-          
+          const chapterMetadata = chaptersQuery?.metadatas?.[0]?.[
+            chapterIndex
+          ] as unknown as ChapterMetadata;
+
           if (chapterMetadata?.transcription_id === transcription_id) {
             const rawScore = chaptersQuery.distances?.[0]?.[chapterIndex] || 0;
-            const relevance = this.calculateRelevanceScore(rawScore, maxDistance);
-            
+            const relevance = this.calculateRelevanceScore(
+              rawScore,
+              maxDistance,
+            );
+
             matchingChapters.push({
               content: chapterDoc as string,
               start: chapterMetadata.start,
@@ -505,11 +554,14 @@ export class ChromaService implements OnModuleInit {
 
         // Sort chapters by relevance score (higher is more relevant)
         matchingChapters.sort((a, b) => b.score - a.score);
-        
+
         return {
           doc: transcriptResult.doc,
           transcription_id,
-          matchingChapters: matchingChapters.slice(0, SEARCH_CONSTANTS.DEFAULT_CHAPTER_LIMIT),
+          matchingChapters: matchingChapters.slice(
+            0,
+            SEARCH_CONSTANTS.DEFAULT_CHAPTER_LIMIT,
+          ),
         };
       });
 
