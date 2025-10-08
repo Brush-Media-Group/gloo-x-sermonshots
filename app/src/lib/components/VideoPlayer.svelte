@@ -14,6 +14,7 @@
   export let showMoreButton: boolean = true;
   export let chapters: Array<{ title: string; start: number; end: number, isRelevant: boolean, relevanceScore: number | null }> = [];
   export let confidence: number = 0;
+  export let bestAnswer: string = '';
 
   const dispatch = createEventDispatcher();
   let videoEl: HTMLVideoElement;
@@ -123,7 +124,7 @@
             </span>
           </div>
           <span
-            class="block text-white text-3xl font-extrabold drop-shadow-lg"
+            class="block text-white text-3xl font-extrabold text-shadow-lg/30"
             style="overflow-wrap: break-word; white-space: normal;"
           >
             {title}
@@ -148,8 +149,10 @@
           {#each chapters as chapter, i}
             {@const isActive = videoEl && videoEl.currentTime * 1000 >= chapter.start && videoEl.currentTime * 1000 < chapter.end}
             <div
-              class="cursor-pointer transition-colors duration-150 relative group"
-              style="height: 100%; background: {isActive ? '#ff9900' : '#f3f4f6'}; width: {(chapter.end - chapter.start) / videoDuration * 100}%; border-radius: 2px; margin-left: {i === 0 ? '0' : '2px'};"
+              class="cursor-pointer transition-colors duration-150 relative group h-full rounded-sm"
+              class:bg-orange-500={isActive}
+              class:bg-gray-400={!isActive}
+              style="width: {(chapter.end - chapter.start) / videoDuration * 100}%; margin-left: {i === 0 ? '0' : '2px'};"
               role="button"
               tabindex="0"
               aria-label={`Go to chapter: ${chapter.title}`}
@@ -165,15 +168,12 @@
       {/if}
     </div>
   </div>
-  
-  <!-- {#if showMoreButton}
-    <div class="text-center">
-      <button 
-        class="px-6 py-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 transition-colors duration-200 font-medium"
-        on:click={handleMoreClick}
-      >
-        More from this sermon
-      </button>
+
+  <!-- display best answer below the video -->
+  {#if bestAnswer}
+    <div class="mt-4 p-4 bg-gray-100 rounded-lg">
+      <p class="text-gray-700">{bestAnswer}</p>
     </div>
-  {/if} -->
+  {/if}
+
 </div>

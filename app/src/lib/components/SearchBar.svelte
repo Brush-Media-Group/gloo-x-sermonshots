@@ -98,7 +98,7 @@
     <button
       type="submit"
       disabled={!term.trim() || isLoading}
-      class="m-2 px-8 py-3 bg-sky-500 text-white rounded-full hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-medium"
+      class="m-2 px-8 py-3 bg-orange-300 text-white rounded-full bg-orange-400 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 font-medium"
     >
       {#if isLoading}
         <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   export let video: {
     id: string;
     title: string;
@@ -7,9 +8,14 @@
     videoUrl?: string;
   };
 
+  let showModal = false;
+
   function handlePlay() {
-    // In a real implementation, this would navigate to the video or open a modal
-    console.log('Playing video:', video.id);
+    showModal = true;
+  }
+
+  function closeModal() {
+    showModal = false;
   }
 </script>
 
@@ -63,5 +69,26 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
     </button>
+
+    {#if showModal}
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-lg max-w-lg w-full p-6 relative">
+          <button class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl" on:click={closeModal} aria-label="Close">
+            &times;
+          </button>
+          <h3 class="font-bold text-lg text-gray-900 mb-4">{video.title}</h3>
+          {#if video.videoUrl}
+            <div class="aspect-video mb-4">
+              <iframe src={video.videoUrl} frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full h-full rounded-lg" title={video.title}></iframe>
+            </div>
+          {:else}
+            <div class="bg-gray-100 rounded-lg flex items-center justify-center h-48 mb-4">
+              <span class="text-gray-400">No video available</span>
+            </div>
+          {/if}
+          <p class="text-gray-700 text-sm">{video.snippet}</p>
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
