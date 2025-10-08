@@ -41,7 +41,7 @@
   <button 
     class="w-full p-3 rounded-lg border transition-all duration-200 text-left relative
       {isActive
-        ?  chapter.isRelevant ? 'bg-orange-100 border-orange-300 shadow-sm' : 'bg-gray-50 border-orange-300 hover:bg-gray-100'
+        ?  chapter.isRelevant ? 'bg-orange-100 border-orange-300 border-2 shadow-sm' : 'bg-gray-50 border-orange-300 border-2 hover:bg-gray-100'
         : chapter.isRelevant
         ? 'bg-orange-100 border-orange-100 shadow-sm'
         : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}"

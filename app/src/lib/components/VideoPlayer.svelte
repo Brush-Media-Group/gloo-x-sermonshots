@@ -21,10 +21,6 @@
   let videoDuration = 0;
   let isPlaying = false;
 
-  function handleMoreClick() {
-    dispatch('more', { videoUrl, title });
-  }
-
   function handleLoadedMetadata() {
       if (videoEl) {
         videoDuration = videoEl.duration;

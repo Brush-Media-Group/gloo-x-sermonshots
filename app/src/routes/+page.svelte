@@ -19,6 +19,7 @@
   let currentResultIndex = 0;
   let shrinkHeader = false;
   let scrollTimeout: number | undefined;
+  let showRelated = false;
 
   async function handleSearch(query: string) {
     if (!query.trim()) return;
@@ -173,6 +174,7 @@
         currentSearchTerm={searchResults.length > 0 ? searchQuery : ''}
         onClear={handleClearSearch}
         bind:value={searchInputValue}
+        on:toggleRelated={() => showRelated = !showRelated}
       />
       <!-- Search Suggestions -->
       {#if !hasSearched}
@@ -208,7 +210,7 @@
       </div>
     {:else if hasSearched && searchResults.length === 0}
       <!-- No Results -->
-      <div class="text-center py-16 animate-fadeInUp">
+      <div class="text-center py-8 animate-fadeInUp">
         <div class="max-w-md mx-auto">
           <div class="text-6xl mb-4">🔍</div>
           <h3 class="text-xl font-semibold text-zinc-700 mb-2">
@@ -253,7 +255,7 @@
         {/if}
 
         <!-- Related Content Section -->
-        {#if relatedContent.length > 0}
+        {#if relatedContent.length > 0 && showRelated}
           <section class="mt-16 animate-fadeInUp" style="animation-delay: 0.3s">
             <div class="text-center mb-8">
               <h3 class="text-2xl font-bold text-zinc-700 mb-2">
