@@ -12,5 +12,3 @@ This repository is organized into two main directories:
 ## About the App
 
 The app enables users to search for sermon videos and chapters, ask faith-related questions, and discover relevant content powered by AI. It features smart search, chapter navigation, instant results, and related answers from other churches.
-
----
